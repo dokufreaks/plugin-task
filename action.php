@@ -19,7 +19,7 @@ class action_plugin_task extends DokuWiki_Action_Plugin {
     return array(
       'author' => 'Esther Brunner',
       'email'  => 'wikidesign@gmail.com',
-      'date'   => '2006-12-18',
+      'date'   => '2007-01-03',
       'name'   => 'Task Plugin',
       'desc'   => 'Brings task management to DokuWiki',
       'url'    => 'http://www.wikidesign.ch/en/plugin/task/start',
@@ -50,10 +50,10 @@ class action_plugin_task extends DokuWiki_Action_Plugin {
     
     switch ($event->data){
     case 'newtask':
-      $event->data = $this->_handle_newTask();
+      $event->data = $this->_newTask();
       break;
     case 'changetask':
-      $event->data = $this->_handle_changeTask();
+      $event->data = $this->_changeTask();
       break;
     }
   }
@@ -61,7 +61,7 @@ class action_plugin_task extends DokuWiki_Action_Plugin {
   /**
    * Creates a new task page
    */
-  function _handle_newTask(){
+  function _newTask(){
     global $ID;
     global $INFO;
     
@@ -83,20 +83,28 @@ class action_plugin_task extends DokuWiki_Action_Plugin {
         global $TEXT;
         
         $user     = $_REQUEST['user'];
+        $date     = $_REQUEST['date'];
+        $priority = $_REQUEST['priority'];
         $username = $_SERVER['REMOTE_USER'];
         $fullname = $INFO['userinfo']['name'];
-        if ($user && (($username == $user) || ($fullname == $user))){
-          $meta['task']['status'] = 1;
-          p_set_metadata($ID, $meta, false, true);
-        }
+        if ($user && (($username == $user) || ($fullname == $user))) $status = 1;
+        else $status = 0;
         
+        // save .task meta file
+        $my =& plugin_load('helper', 'task');
+        $task = array(
+          'user'     => $user,
+          'date'     => array('due' => $my->_interpretDate($date)),
+          'priority' => strspn($priority, '!'),
+          'status'   => $status,
+        );
+        $my->writeTask($ID, $task);
+        
+        // create wiki page
         $TEXT = pageTemplate(array(($ns ? $ns.':' : '').$title));
         if (!$TEXT){
-          // prepare task specific data
           $user     = ($user ? ':'.$user : '');
-          $date     = ($_REQUEST['date'] ? '?'.$_REQUEST['date'] : '');
-          $priority = $_REQUEST['priority'];
-          
+          $date     = ($date ? '?'.$date : '');
           $TEXT = "<- [[:$back]]\n\n====== $title ======\n\n".
             "~~TASK$user$date$priority~~\n\n";
           if ((@file_exists(DOKU_PLUGIN.'tag/syntax/tag.php'))
@@ -106,6 +114,7 @@ class action_plugin_task extends DokuWiki_Action_Plugin {
             && (!plugin_isdisabled('discussion')))
             $TEXT .= "\n\n~~DISCUSSION~~";
         }
+        
         return 'preview';
       } else {
         return 'edit';
@@ -118,17 +127,19 @@ class action_plugin_task extends DokuWiki_Action_Plugin {
   /**
    * Changes the status of a task
    */
-  function _handle_changeTask(){
+  function _changeTask(){
     global $ID, $INFO;
         
     $status = $_REQUEST['status'];
     if (!is_numeric($status) || ($status < -1) || ($status > 4)) return 'show'; // invalid
-    if ($INFO['meta']['task']['status'] == $status) return 'show'; // unchanged
     
-    $user     = $INFO['meta']['task']['user'];
-    $username = $_SERVER['REMOTE_USER'];
-    $fullname = $INFO['userinfo']['name'];
-    $responsible = (($user && (($username == $user) || ($fullname == $user))) ? 1 : 0);
+    // load task data
+    $my =& plugin_load('helper', 'task');
+    $task = $my->readTask($ID);
+    
+    if ($task['status'] == $status) return 'show'; // unchanged
+    
+    $responsible = $my->_isResponsible($task['user']);
     
     // some additional checks if change not performed by an admin
     if ($INFO['perm'] != AUTH_ADMIN){
@@ -141,15 +152,17 @@ class action_plugin_task extends DokuWiki_Action_Plugin {
     }
     
     // assign task to a user
-    if (!$user && ($status == 1)){
+    if (!$task['user'] && ($status == 1)){
+      if (!$INFO['userinfo']['name']) return 'show'; // no name of logged in user
       $wiki = rawWiki($ID);
-      $summary = $this->getLang('changed').$this->getLang('accepted');
-      $new = preg_replace('/~~TASK:?/', '~~TASK:'.$fullname, $wiki);
-      if ($new != $wiki) saveWikiText($ID, $new, $summary);
+      $summary = $this->getLang('mail_changedtask').': '.$this->getLang('accepted');
+      $new = preg_replace('/~~TASK:?/', '~~TASK:'.$INFO['userinfo']['name'], $wiki);
+      if ($new != $wiki) saveWikiText($ID, $new, $summary, true); // save as minor edit
     }
     
-    $meta['task']['status'] = $status;
-    p_set_metadata($ID, $meta, false, true);
+    // save .task meta file
+    $task['status'] = $status;
+    $my->writeTask($ID, $task);
     
     return 'show';
   }

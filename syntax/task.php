@@ -21,7 +21,7 @@ class syntax_plugin_task_task extends DokuWiki_Syntax_Plugin {
     return array(
       'author' => 'Esther Brunner',
       'email'  => 'wikidesign@gmail.com',
-      'date'   => '2006-12-20',
+      'date'   => '2007-01-03',
       'name'   => 'Task Plugin (task component)',
       'desc'   => 'Handles indivudual tasks on a wiki page',
       'url'    => 'http://www.wikidesign.ch/en/plugin/task/start',
@@ -37,36 +37,30 @@ class syntax_plugin_task_task extends DokuWiki_Syntax_Plugin {
   }
   
   function handle($match, $state, $pos, &$handler){
-    $match = substr($match, 6, -2); // strip markup and split tags
+    global $ID;
+    
+    // strip markup and split arguments
+    $match = substr($match, 6, -2);
     $priority = strspn(strstr($match, '!'), '!');
     $match = trim($match, ':!');
     list($user, $date) = explode('?', $match);
-    if ($date){
-      
-      // only year given -> time till end of year
-      if (preg_match("/^\d{4}$/", $date)){
-        $date .= '-12-31';
-      
-      // only month given -> time till last of month
-      } elseif (preg_match("/^\d{4}-(\d{2})$/", $date, $month)){
-        switch ($month[1]){
-        case '01': case '03': case '05': case '07': case '08': case '10': case '12':
-          $date .= '-31';
-          break;
-        case '04': case '06': case '09': case '11':
-          $date .= '-30';
-          break;
-        case '02': // leap year isn't handled here
-          $date .= '-28';
-          break;
-        }
-      }
-      
-      // convert to UNIX time
-      $date = strtotime($date);
-      if ($date === -1) $date = NULL;
-    }
     
+    // save task meta file if changes were made
+    if ($my =& plugin_load('helper', 'task')){
+      $date = $my->_interpretDate($date);
+      
+      $current = $my->readTask($ID);
+      if (($current['user'] != $user)
+        || ($current['date']['due'] != $date)
+        || ($current['priority'] != $priority)){
+        $task = array(
+          'user'     => $user,
+          'date'     => $date,
+          'priority' => $priority,
+        );
+        $my->writeTask($ID, $task);
+      }
+    }   
     return array($user, $date, $priority);
   }      
  
@@ -77,7 +71,6 @@ class syntax_plugin_task_task extends DokuWiki_Syntax_Plugin {
     
     // XHTML output
     if ($mode == 'xhtml'){
-      global $INFO;
       
       // strip time from preferred date format
       $onlydate = trim($conf['dformat'], 'AaBGgHhiOTZ:');
@@ -107,9 +100,6 @@ class syntax_plugin_task_task extends DokuWiki_Syntax_Plugin {
       
     // for metadata renderer
     } elseif ($mode == 'metadata'){
-      $renderer->meta['task']['user']     = $user;
-      $renderer->meta['task']['date']     = $date;
-      $renderer->meta['task']['priority'] = $priority;
       return true;
     }
     return false;
@@ -133,12 +123,13 @@ class syntax_plugin_task_task extends DokuWiki_Syntax_Plugin {
    * Returns the status cell contents
    */
   function _getStatus($user, &$status){
-    global $INFO;
+    global $INFO, $ID;
     
     $my =& plugin_load('helper', 'task');
     
     $ret = '';
-    $status = $INFO['meta']['task']['status'];
+    $task = $my->readTask($ID);
+    $status = $task['status'];
     $responsible = $my->_isResponsible($user);
     
     if ($INFO['perm'] == AUTH_ADMIN){
@@ -172,7 +163,7 @@ class syntax_plugin_task_task extends DokuWiki_Syntax_Plugin {
       $ret .= '>'.$my->statusLabel($option).'</option>'.DOKU_LF;
     }
     $ret .= DOKU_TAB.'</select>'.DOKU_LF.
-      DOKU_TAB.'<input class="button" type="submit" value="'.$this->getLang('change').'" />'.DOKU_LF.
+      DOKU_TAB.'<input class="button" type="submit" value="'.$this->getLang('btn_change').'" />'.DOKU_LF.
       '</div>'.DOKU_LF.
       '</form>';
     return $ret;

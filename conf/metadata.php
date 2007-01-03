@@ -5,6 +5,7 @@
  *
  * @author    Esther Brunner <wikidesign@gmail.com>
  */
+$meta['datefield']          = array('onoff');
 
 $meta['tasks_formposition'] = array(
                                 'multichoice',

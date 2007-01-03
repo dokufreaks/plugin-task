@@ -1,0 +1,19 @@
+Hallo!
+
+Die folgende Aufgabe im @TITLE@ Wiki wurde hinzugefügt oder geändert.
+
+----------
+@PAGE@
+
+Verantwortlich:    @NAME@
+Zu erledigen bis:  @DATE@
+Status:            @STATUS@
+Priorität:         @PRIORITY@
+----------
+
+Um das Abonnement für diese Seite aufzulösen, melde dich im Wiki an und klicke dann diesen Link:
+@UNSUBSCRIBE@
+
+-- 
+Diese Mail kommt vom DokuWiki auf
+@DOKUWIKIURL@

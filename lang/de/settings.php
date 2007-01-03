@@ -7,6 +7,8 @@
  */
 
 // for the configuration manager
+$lang['datefield']                   = 'Feld zur Angabe des Fälligkeitsdatums';
+
 $lang['tasks_formposition']          = 'Position des Formulars für neue Aufgaben';
 $lang['tasks_formposition_o_none']   = 'gar nicht';
 $lang['tasks_formposition_o_top']    = 'oben';

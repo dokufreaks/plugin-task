@@ -24,7 +24,7 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
     return array(
       'author' => 'Esther Brunner',
       'email'  => 'wikidesign@gmail.com',
-      'date'   => '2006-12-20',
+      'date'   => '2007-01-03',
       'name'   => 'Task Plugin (tasks component)',
       'desc'   => 'Lists tasks of a given namespace',
       'url'    => 'http://www.wikidesign.ch/en/plugin/task/start',
@@ -69,11 +69,11 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
     
     if ($my =& plugin_load('helper', 'task')) $pages = $my->getTasks($ns, NULL, $filter);
     if (!$pages){
+      if ($mode != 'xhtml') return true;
+      $renderer->info['cache'] = false;
       if ($select) $renderer->doc .= $this->_viewMenu($filter);
-      if ((auth_quickaclcheck($ns.':*') >= AUTH_CREATE) && ($mode == 'xhtml')){
-        $renderer->info['cache'] = false;
+      if (auth_quickaclcheck($ns.':*') >= AUTH_CREATE)
         $renderer->doc .= $this->_newTaskForm($ns);
-      }
       return true; // nothing to display
     }
     
@@ -111,7 +111,7 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
       $pagelist->header['page'] = $this->getLang('task');
       $pagelist->header['date'] = str_replace(' ', '&nbsp;', $this->getLang('date'));
       $pagelist->header['user'] = str_replace(' ', '&nbsp;', $this->getLang('user'));
-      $pagelist->column['date'] = true;
+      $pagelist->column['date'] = $this->getConf('datefield');
       $pagelist->column['user'] = true;
       $pagelist->addColumn('task', 'status');
       
@@ -162,7 +162,7 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
       $ret .= '>'.$this->getLang('view_'.$option).'</option>'.DOKU_LF;
     }
     $ret .= DOKU_TAB.'</select>'.DOKU_LF.
-      DOKU_TAB.'<input class="button" type="submit" value="'.$this->getLang('refresh').'" />'.DOKU_LF.
+      DOKU_TAB.'<input class="button" type="submit" value="'.$this->getLang('btn_refresh').'" />'.DOKU_LF.
       '</label>'.DOKU_LF.
       '</form>';
     return $ret;
@@ -172,8 +172,13 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
    * Returns an array of available view filters for the task list
    */
   function _viewFilters(){
-    if (!$_SERVER['REMOTE_USER']) return array('all', 'open', 'done', 'due', 'overdue');
-    else return array('all', 'open', 'my', 'new', 'done', 'due', 'overdue');
+    if (!$_SERVER['REMOTE_USER']) $filters = array('all', 'open', 'done');
+    else $filters = array('all', 'open', 'my', 'new', 'done');
+    if ($this->getConf('datefield')){
+      $filters[] = 'due';
+      $filters[] = 'overdue';
+    }
+    return $filters;
   }
   
   /**
@@ -201,7 +206,7 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
   function _newTaskForm($ns){
     global $ID, $lang, $INFO;
     
-    return '<div class="newtask_form">'.DOKU_LF.
+    $ret = '<div class="newtask_form">'.DOKU_LF.
       '<form id="task__newtask_form"  method="post" action="'.script().'" accept-charset="'.$lang['encoding'].'">'.DOKU_LF.
       DOKU_TAB.'<fieldset>'.DOKU_LF.
       DOKU_TAB.DOKU_TAB.'<legend> '.$this->getLang('newtask').': </legend>'.DOKU_LF.
@@ -212,11 +217,13 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
       '<table class="blind">'.DOKU_LF.
       DOKU_TAB.'<tr>'.DOKU_LF.
       DOKU_TAB.DOKU_TAB.'<th>'.$this->getLang('user').':</th><td><input type="text" name="user" value="'.hsc($INFO['userinfo']['name']).'" class="edit" tabindex="2" /></td>'.DOKU_LF.
-      DOKU_TAB.'</tr>'.DOKU_LF.
-      DOKU_TAB.'<tr>'.DOKU_LF.
+      DOKU_TAB.'</tr>'.DOKU_LF;
+    if ($this->getConf('datefield')){ // field for due date
+      $ret .= DOKU_TAB.'<tr>'.DOKU_LF.
       DOKU_TAB.DOKU_TAB.'<th>'.$this->getLang('date').':</th><td><input type="text" name="date" value="'.date('Y-m-d').'" class="edit" tabindex="3" /></td>'.DOKU_LF.
-      DOKU_TAB.'</tr>'.DOKU_LF.
-      DOKU_TAB.DOKU_TAB.'<th>'.$this->getLang('priority').':</th><td>'.DOKU_LF.
+      DOKU_TAB.'</tr>'.DOKU_LF;
+    }
+    $ret .= DOKU_TAB.DOKU_TAB.'<th>'.$this->getLang('priority').':</th><td>'.DOKU_LF.
       DOKU_TAB.DOKU_TAB.DOKU_TAB.'<select name="priority" size="1" tabindex="4" class="edit">'.DOKU_LF.
       DOKU_TAB.DOKU_TAB.DOKU_TAB.DOKU_TAB.'<option value="" selected="selected">'.$this->getLang('low').'</option>'.DOKU_LF.
       DOKU_TAB.DOKU_TAB.DOKU_TAB.DOKU_TAB.'<option value="!">'.$this->getLang('medium').'</option>'.DOKU_LF.
@@ -230,6 +237,7 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
       DOKU_TAB.'</fieldset>'.DOKU_LF.
       '</form>'.DOKU_LF.
       '</div>'.DOKU_LF;
+    return $ret;
   }
         
 }

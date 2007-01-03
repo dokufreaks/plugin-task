@@ -7,6 +7,8 @@
  */
 
 // for the configuration manager
+$lang['datefield']                   = 'entry field for due date';
+
 $lang['tasks_formposition']          = 'position of the new task form';
 $lang['tasks_formposition_o_none']   = 'none';
 $lang['tasks_formposition_o_top']    = 'top';
