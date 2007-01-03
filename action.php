@@ -134,8 +134,8 @@ class action_plugin_task extends DokuWiki_Action_Plugin {
     if (!is_numeric($status) || ($status < -1) || ($status > 4)) return 'show'; // invalid
     
     // load task data
-    $my =& plugin_load('helper', 'task');
-    $task = $my->readTask($ID);
+    if ($my =& plugin_load('helper', 'task')) $task = $my->readTask($ID);
+    else return 'show';
     
     if ($task['status'] == $status) return 'show'; // unchanged
     
@@ -159,10 +159,10 @@ class action_plugin_task extends DokuWiki_Action_Plugin {
       $new = preg_replace('/~~TASK:?/', '~~TASK:'.$INFO['userinfo']['name'], $wiki);
       if ($new != $wiki) saveWikiText($ID, $new, $summary, true); // save as minor edit
     }
-    
-    // save .task meta file
+        
+    // save .task meta file and clear xhtml cache
     $task['status'] = $status;
-    $my->writeTask($ID, $task);
+    if ($my->writeTask($ID, $task)) $_REQUEST['purge'] = true;
     
     return 'show';
   }

@@ -125,9 +125,9 @@ class syntax_plugin_task_task extends DokuWiki_Syntax_Plugin {
   function _getStatus($user, &$status){
     global $INFO, $ID;
     
-    $my =& plugin_load('helper', 'task');
-    
     $ret = '';
+    
+    $my =& plugin_load('helper', 'task');
     $task = $my->readTask($ID);
     $status = $task['status'];
     $responsible = $my->_isResponsible($user);
