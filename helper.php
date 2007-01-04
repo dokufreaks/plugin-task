@@ -139,7 +139,7 @@ class helper_plugin_task extends DokuWiki_Plugin {
       $result[$task['key']] = array(
         'id'       => $id,
         'date'     => $date,
-        'user'     => $task['user'],
+        'user'     => $task['user']['name'],
         'status'   => $this->statusLabel($task['status']),
         'priority' => $task['priority'],
         'perm'     => $perm,
@@ -161,10 +161,11 @@ class helper_plugin_task extends DokuWiki_Plugin {
    */
   function readTask($id){
     $file = metaFN($id, '.task');
-    if (!@file_exists($file)){ //@remove
+    if (!@file_exists($file)){
       $data = p_get_metadata($id, 'task');
       if (is_array($data)){
         $data['date'] = array('due' => $data['date']);
+        $data['user'] = array('name' => $data['user']);
         $meta = array('task' => NULL);
         if ($this->writeTask($id, $data)) p_set_metadata($id, $meta);
       }
@@ -189,12 +190,14 @@ class helper_plugin_task extends DokuWiki_Plugin {
     unset($data['exists']);
     
     // set creation or modification time
-    if (!is_array($data['date'])) $data['date'] = array('due' => $data['date']); //@remove
+    if (!is_array($data['date'])) $data['date'] = array('due' => $data['date']);
     if (!@file_exists($file) || !$data['date']['created']){
       $data['date']['created'] = time();
     } else {
       $data['date']['modified'] = time();
     }
+    
+    if (!is_array($data['user'])) $data['user'] = array('name' => $data['user']);
     
     if (!isset($data['status'])){    // make sure we don't overwrite status
       $current = unserialize(io_readFile($file, false));
@@ -204,7 +207,7 @@ class helper_plugin_task extends DokuWiki_Plugin {
     }
     
     // generate vtodo for iCal file download
-    // $data['vtodo'] = $this->_vtodo($data);
+    $data['vtodo'] = $this->_vtodo($id, $data);
     
     // generate sortkey with priority and creation date
     $data['key'] = chr($data['priority'] + 97).(2000000000 - $data['date']['created']);
@@ -260,7 +263,8 @@ class helper_plugin_task extends DokuWiki_Plugin {
     global $INFO;
     
     if (!$user) return false;
-    if (($user == $_SERVER['REMOTE_USER']) || ($user == $INFO['userinfo']['name']))
+    if (($user['id'] == $_SERVER['REMOTE_USER'])
+      || ($user['name'] == $INFO['userinfo']['name']))
       return true;
     return false;
   }
@@ -329,7 +333,92 @@ class helper_plugin_task extends DokuWiki_Plugin {
   
     mail_send($to, $subject, $text, $conf['mailfrom'], '', $bcc);
   }
-
+  
+  /**
+   * Generates a VTODO section for iCal file download
+   */
+  function _vtodo($id, $task){
+    if (!defined('CRLF')) define('CRLF', "\r\n");
+    
+    $meta = p_get_metadata($id);
+    
+    $ret = 'BEGIN:VTODO'.CRLF.
+      'UID:'.$id.'@'.$_SERVER['SERVER_NAME'].CRLF.
+      'URL:'.wl($id, '', true, '&').CRLF.
+      'SUMMARY:'.$this->_vsc($meta['title']).CRLF;
+    if ($meta['description']['abstract'])
+      $ret .= 'DESCRIPTION:'.$this->_vsc($meta['description']['abstract']).CRLF;
+    if ($meta['subject'])
+      $ret .= 'CATEGORIES:'.$this->_vcategories($meta['subject']).CRLF;
+    if ($task['date']['created'])
+      $ret .= 'CREATED:'.$this->_vdate($task['date']['created']).CRLF;
+    if ($task['date']['modified'])
+      $ret .= 'LAST-MODIFIED:'.$this->_vdate($task['date']['modified']).CRLF;
+    if ($task['date']['due'])
+      $ret .= 'DUE:'.$this->_vdate($task['date']['due']).CRLF;
+    if ($task['date']['completed'])
+      $ret .= 'COMPLETED:'.$this->_vdate($task['date']['completed']).CRLF;
+    if ($task['user']) $ret .= 'ORGANIZER;CN="'.$this->_vsc($task['user']['name']).'":'.
+      'MAILTO:'.$task['user']['mail'].CRLF;
+    $ret .= 'STATUS:'.$this->_vstatus($task['status']).CRLF;
+    if (is_numeric($task['priority']))
+      $ret .= 'PRIORITY:'.(7 - ($task['priority'] * 2)).CRLF;
+    $ret .= 'CLASS:'.$this->_vclass($id).CRLF.
+      'END:VTODO'.CRLF;
+    return $ret;
+  }
+  
+  /**
+   * Encodes vCard / iCal special characters
+   */
+  function _vsc($string){
+    $search = array("\\", ",", ";", "\n", "\r");
+    $replace = array("\\\\", "\\,", "\\;", "\\n", "\\n");
+    return str_replace($search, $replace, $string);
+  }
+  
+  /**
+   * Generates YYYYMMDD"T"hhmmss"Z" UTC time date format (ISO 8601 / RFC 3339)
+   */
+  function _vdate($date, $extended = false){
+    $date = $date + date('Z', $date); // calculate UTC time
+    if ($extended) return date('Y-m-d\TH:i:s\Z', $date);
+    else return date('Ymd\THis\Z', $date);
+  }
+  
+  /**
+   * Returns VTODO status
+   */
+  function _vstatus($status){
+    switch ($status){
+    case -1:
+      return 'CANCELLED';
+    case 1: case 2:
+      return 'IN-PROCESS';
+    case 3: case 4:
+      return 'COMPLETED';
+    default:
+      return 'NEEDS-ACTION';
+    }
+  }
+  
+  /**
+   * Returns VTODO categories
+   */
+  function _vcategories($cat){
+    if (!is_array($cat)) $cat = explode(' ', $cat);
+    return join(',', $this->_vsc($cat));
+  }
+  
+  /**
+   * Returns access classification for VTODO
+   */
+  function _vclass($id){
+    global $USERINFO; // checks access rights for anonymous user
+    if (auth_aclcheck($id, '', $USERINFO['grps'])) return 'PUBLIC';
+    else return 'PRIVATE';
+  }
+  
 }
   
 //Setup VIM: ex: et ts=4 enc=utf-8 :

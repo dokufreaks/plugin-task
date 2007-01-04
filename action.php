@@ -93,7 +93,10 @@ class action_plugin_task extends DokuWiki_Action_Plugin {
         // save .task meta file
         $my =& plugin_load('helper', 'task');
         $task = array(
-          'user'     => $user,
+          'user'     => array(
+            'id'   => $_SERVER['REMOTE_USER'],
+            'name' => $INFO['userinfo']['name'],
+            'mail' => $INFO['userinfo']['mail']),
           'date'     => array('due' => $my->_interpretDate($date)),
           'priority' => strspn($priority, '!'),
           'status'   => $status,
@@ -153,11 +156,16 @@ class action_plugin_task extends DokuWiki_Action_Plugin {
     
     // assign task to a user
     if (!$task['user'] && ($status == 1)){
-      if (!$INFO['userinfo']['name']) return 'show'; // no name of logged in user
+      if (!$_SERVER['REMOTE_USER']) return 'show'; // no logged in user
       $wiki = rawWiki($ID);
       $summary = $this->getLang('mail_changedtask').': '.$this->getLang('accepted');
       $new = preg_replace('/~~TASK:?/', '~~TASK:'.$INFO['userinfo']['name'], $wiki);
       if ($new != $wiki) saveWikiText($ID, $new, $summary, true); // save as minor edit
+      $task['user'] = array(
+        'id'   => $_SERVER['REMOTE_USER'],
+        'name' => $INFO['userinfo']['name'],
+        'mail' => $INFO['userinfo']['mail'],
+      );
     }
         
     // save .task meta file and clear xhtml cache
