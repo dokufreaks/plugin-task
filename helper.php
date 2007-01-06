@@ -381,9 +381,8 @@ class helper_plugin_task extends DokuWiki_Plugin {
    * Generates YYYYMMDD"T"hhmmss"Z" UTC time date format (ISO 8601 / RFC 3339)
    */
   function _vdate($date, $extended = false){
-    $date = $date + date('Z', $date); // calculate UTC time
-    if ($extended) return date('Y-m-d\TH:i:s\Z', $date);
-    else return date('Ymd\THis\Z', $date);
+    if ($extended) return gmdate('Y-m-d\TH:i:s\Z', $date);
+    else return gmdate('Ymd\THis\Z', $date);
   }
   
   /**

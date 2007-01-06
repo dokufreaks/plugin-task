@@ -24,7 +24,7 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
     return array(
       'author' => 'Esther Brunner',
       'email'  => 'wikidesign@gmail.com',
-      'date'   => '2007-01-03',
+      'date'   => '2007-01-05',
       'name'   => 'Task Plugin (tasks component)',
       'desc'   => 'Lists tasks of a given namespace',
       'url'    => 'http://www.wikidesign.ch/en/plugin/task/start',
@@ -150,7 +150,8 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
     
     $options = $this->_viewFilters();
         
-    $ret = '<form id="task__changeview_form" method="post" action="'.script().'" accept-charset="'.$lang['encoding'].'">'.DOKU_LF.
+    $ret = '<div class="task_viewmenu">'.DOKU_LF.
+      '<form id="task__changeview_form" method="post" action="'.script().'" accept-charset="'.$lang['encoding'].'">'.DOKU_LF.
       '<label class="simple">'.DOKU_LF.
       DOKU_TAB.'<span>'.$this->getLang('view').'</span>'.DOKU_LF.
       DOKU_TAB.'<input type="hidden" name="id" value="'.$ID.'" />'.DOKU_LF.
@@ -164,7 +165,8 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
     $ret .= DOKU_TAB.'</select>'.DOKU_LF.
       DOKU_TAB.'<input class="button" type="submit" value="'.$this->getLang('btn_refresh').'" />'.DOKU_LF.
       '</label>'.DOKU_LF.
-      '</form>';
+      '</form>'.DOKU_LF.
+      '</div>'.DOKU_LF;
     return $ret;
   }
   
