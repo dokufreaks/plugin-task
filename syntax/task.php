@@ -24,7 +24,7 @@ class syntax_plugin_task_task extends DokuWiki_Syntax_Plugin {
     return array(
       'author' => 'Esther Brunner',
       'email'  => 'wikidesign@gmail.com',
-      'date'   => '2007-01-03',
+      'date'   => '2007-01-11',
       'name'   => 'Task Plugin (task component)',
       'desc'   => 'Handles indivudual tasks on a wiki page',
       'url'    => 'http://www.wikidesign.ch/en/plugin/task/start',
@@ -60,7 +60,7 @@ class syntax_plugin_task_task extends DokuWiki_Syntax_Plugin {
           'user'     => array('name' => $user),
           'date'     => array('due' => $date),
           'priority' => $priority,
-        );                                        // @todo: re-check!
+        );
         $my->writeTask($ID, $task);
       }
     }   
@@ -131,7 +131,7 @@ class syntax_plugin_task_task extends DokuWiki_Syntax_Plugin {
    */
   function _loadHelper(){
     global $ID;
-    $this->my   =& plugin_load('helper', 'task');
+    $this->my =& plugin_load('helper', 'task');
     if (!is_object($this->my)) return false;
     $this->task = $this->my->readTask($ID);
     return $true;

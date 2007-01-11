@@ -17,14 +17,11 @@ require_once(DOKU_PLUGIN.'syntax.php');
 
 class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
 
-  /**
-   * return some info
-   */
   function getInfo(){
     return array(
       'author' => 'Esther Brunner',
       'email'  => 'wikidesign@gmail.com',
-      'date'   => '2007-01-05',
+      'date'   => '2007-01-11',
       'name'   => 'Task Plugin (tasks component)',
       'desc'   => 'Lists tasks of a given namespace',
       'url'    => 'http://www.wikidesign.ch/en/plugin/task/start',
@@ -39,25 +36,23 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
     $this->Lexer->addSpecialPattern('\{\{tasks>.+?\}\}', $mode, 'plugin_task_tasks');
   }
 
-  /**
-   * Handle the match
-   */
   function handle($match, $state, $pos, &$handler){
+    global $ID;
+    
     $match = substr($match, 8, -2); // strip {{topic> from start and }} from end
     list($ns, $filter) = explode('?', $match);
-    return array(cleanID($ns), $filter);
-  }
-
-  /**
-   * Create output
-   */
-  function render($mode, &$renderer, $data){
-    global $ID, $conf;
-    
-    list($ns, $filter) = $data;
     
     if (($ns == '*') || ($ns == ':')) $ns = '';
     elseif ($ns == '.') $ns = getNS($ID);
+    else $ns = cleanID($ns);
+    
+    return array($ns, $filter);
+  }
+
+  function render($mode, &$renderer, $data){
+    global $conf;
+    
+    list($ns, $filter) = $data;
     
     if (!$filter || ($filter == 'select')){
       $select = true;
