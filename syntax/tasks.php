@@ -21,7 +21,7 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
     return array(
       'author' => 'Esther Brunner',
       'email'  => 'wikidesign@gmail.com',
-      'date'   => '2007-01-11',
+      'date'   => '2007-01-12',
       'name'   => 'Task Plugin (tasks component)',
       'desc'   => 'Lists tasks of a given namespace',
       'url'    => 'http://www.wikidesign.ch/en/plugin/task/start',
@@ -40,19 +40,21 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
     global $ID;
     
     $match = substr($match, 8, -2); // strip {{topic> from start and }} from end
+    list($match, $flags) = explode('&', $match, 2);
+    $flags = explode('&', $flags);
     list($ns, $filter) = explode('?', $match);
     
     if (($ns == '*') || ($ns == ':')) $ns = '';
     elseif ($ns == '.') $ns = getNS($ID);
     else $ns = cleanID($ns);
     
-    return array($ns, $filter);
+    return array($ns, $filter, $flags);
   }
 
   function render($mode, &$renderer, $data){
     global $conf;
     
-    list($ns, $filter) = $data;
+    list($ns, $filter, $flags) = $data;
     
     if (!$filter || ($filter == 'select')){
       $select = true;
@@ -108,6 +110,7 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
       $pagelist->header['user'] = str_replace(' ', '&nbsp;', $this->getLang('user'));
       $pagelist->column['date'] = $this->getConf('datefield');
       $pagelist->column['user'] = true;
+      $pagelist->setFlags($flags);
       $pagelist->addColumn('task', 'status');
       
       // output list
