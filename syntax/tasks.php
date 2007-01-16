@@ -21,7 +21,7 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
     return array(
       'author' => 'Esther Brunner',
       'email'  => 'wikidesign@gmail.com',
-      'date'   => '2007-01-12',
+      'date'   => '2007-01-16',
       'name'   => 'Task Plugin (tasks component)',
       'desc'   => 'Lists tasks of a given namespace',
       'url'    => 'http://www.wikidesign.ch/en/plugin/task/start',
@@ -42,19 +42,20 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
     $match = substr($match, 8, -2); // strip {{topic> from start and }} from end
     list($match, $flags) = explode('&', $match, 2);
     $flags = explode('&', $flags);
-    list($ns, $filter) = explode('?', $match);
+    list($match, $refine) = explode(' ', $match, 2);
+    list($ns, $filter) = explode('?', $match, 2);
     
     if (($ns == '*') || ($ns == ':')) $ns = '';
     elseif ($ns == '.') $ns = getNS($ID);
     else $ns = cleanID($ns);
     
-    return array($ns, $filter, $flags);
+    return array($ns, $filter, $flags, $refine);
   }
 
   function render($mode, &$renderer, $data){
     global $conf;
     
-    list($ns, $filter, $flags) = $data;
+    list($ns, $filter, $flags, $refine) = $data;
     
     if (!$filter || ($filter == 'select')){
       $select = true;
@@ -65,6 +66,16 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
     if (!in_array($filter, $filters)) $filter = 'open';
     
     if ($my =& plugin_load('helper', 'task')) $pages = $my->getTasks($ns, NULL, $filter);
+        
+    // use tag refinements?
+    if ($refine){
+      if (plugin_isdisabled('tag') || (!$tag = plugin_load('helper', 'tag'))){
+        msg('The Tag Plugin must be installed to use tag refinements.', -1);
+      } else {
+        $pages = $tag->tagRefine($pages, $refine);
+      }
+    }
+    
     if (!$pages){
       if ($mode != 'xhtml') return true;
       $renderer->info['cache'] = false;
