@@ -19,7 +19,7 @@ class action_plugin_task extends DokuWiki_Action_Plugin {
     return array(
       'author' => 'Esther Brunner',
       'email'  => 'wikidesign@gmail.com',
-      'date'   => '2007-01-03',
+      'date'   => '2007-02-21',
       'name'   => 'Task Plugin',
       'desc'   => 'Brings task management to DokuWiki',
       'url'    => 'http://www.wikidesign.ch/en/plugin/task/start',
@@ -106,16 +106,16 @@ class action_plugin_task extends DokuWiki_Action_Plugin {
         // create wiki page
         $TEXT = pageTemplate(array(($ns ? $ns.':' : '').$title));
         if (!$TEXT){
-          $user     = ($user ? ':'.$user : '');
-          $date     = ($date ? '?'.$date : '');
-          $TEXT = "<- [[:$back]]\n\n====== $title ======\n\n".
-            "~~TASK$user$date$priority~~\n\n";
-          if ((@file_exists(DOKU_PLUGIN.'tag/syntax/tag.php'))
-            && (!plugin_isdisabled('tag')))
-            $TEXT .= "\n\n{{tag>}}";
-          if ((@file_exists(DOKU_PLUGIN.'discussion/action.php'))
-            && (!plugin_isdisabled('discussion')))
-            $TEXT .= "\n\n~~DISCUSSION~~";
+          $data = array(
+            'id'       => $ID,
+            'ns'       => $ns,
+            'title'    => $title,
+            'back'     => $back,
+            'priority' => $priority,
+            'user'     => $user,
+            'date'     => $date,
+          );
+          $TEXT = $this->_pageTemplate($data);
         }
         
         return 'preview';
@@ -125,6 +125,52 @@ class action_plugin_task extends DokuWiki_Action_Plugin {
     } else {
       return 'show';
     }
+  }
+  
+  /**
+   * Adapted version of pageTemplate() function
+   */
+  function _pageTemplate($data){
+    global $INFO;
+    
+    $id   = $data['id'];
+    $tpl  = io_readFile(DOKU_PLUGIN.'task/_template.txt');
+    
+    // standard replacements
+    $replace = array(
+      '@ID@'   => $id,
+      '@NS@'   => $data['ns'],
+      '@PAGE@' => strtr(noNS($id),'_',' '),
+      '@USER@' => $data['user'],
+      '@NAME@' => $INFO['userinfo']['name'],
+      '@MAIL@' => $INFO['userinfo']['mail'],
+      '@DATE@' => $data['date'],
+    );
+    
+    // additional replacements
+    $replace['@BACK@']     = $data['back'];
+    $replace['@TITLE@']    = $data['title'];
+    $replace['@PRIORITY@'] = $data['priority'];
+        
+    // tag if tag plugin is available
+    if ((@file_exists(DOKU_PLUGIN.'tag/syntax/tag.php'))
+      && (!plugin_isdisabled('tag'))){
+      $replace['@TAG@'] = "\n\n{{tag>}}";
+    } else {
+      $replace['@TAG@'] = '';
+    }
+    
+    // discussion if discussion plugin is available
+    if ((@file_exists(DOKU_PLUGIN.'discussion/syntax/comments.php'))
+      && (!plugin_isdisabled('discussion'))){
+      $replace['@DISCUSSION@'] = "~~DISCUSSION~~";
+    } else {
+      $replace['@DISCUSSION@'] = '';
+    }
+    
+    // do the replace
+    $tpl = str_replace(array_keys($replace), array_values($replace), $tpl);
+    return $tpl;
   }
   
   /**
