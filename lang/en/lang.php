@@ -25,7 +25,7 @@ $lang['new']      = 'new';
 $lang['accepted'] = 'accepted';
 $lang['started']  = 'started';
 $lang['done']     = 'done';
-$lang['verified'] = 'verfied';
+$lang['verified'] = 'verified';
 
 $lang['mail_newtask']      = 'New task added';
 $lang['mail_changedtask']  = 'Task status changed';
