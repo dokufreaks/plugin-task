@@ -14,12 +14,12 @@ class helper_plugin_task extends DokuWiki_Plugin {
 
   function getInfo(){
     return array(
-      'author' => 'Esther Brunner',
-      'email'  => 'wikidesign@gmail.com',
-      'date'   => '2007-01-03',
+      'author' => 'Gina Häußge, Michael Klier, Esther Brunner',
+      'email'  => 'dokuwiki@chimeric.de',
+      'date'   => '2008-02-14',
       'name'   => 'Task Plugin (helper class)',
       'desc'   => 'Functions to get info about tasks',
-      'url'    => 'http://www.wikidesign/en/plugin/task/start',
+      'url'    => 'http://wiki.splitbrain.org/plugin:task',
     );
   }
   

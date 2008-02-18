@@ -19,12 +19,12 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
 
   function getInfo(){
     return array(
-      'author' => 'Esther Brunner',
-      'email'  => 'wikidesign@gmail.com',
-      'date'   => '2007-01-16',
+      'author' => 'Gina Häußge, Michael Klier, Esther Brunner',
+      'email'  => 'dokuwiki@chimeric.de',
+      'date'   => '2008-02-14',
       'name'   => 'Task Plugin (tasks component)',
       'desc'   => 'Lists tasks of a given namespace',
-      'url'    => 'http://www.wikidesign.ch/en/plugin/task/start',
+      'url'    => 'http://wiki.splitbrain.org/plugin:task',
     );
   }
 

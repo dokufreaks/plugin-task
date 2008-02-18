@@ -17,12 +17,12 @@ class action_plugin_task extends DokuWiki_Action_Plugin {
    */
   function getInfo(){
     return array(
-      'author' => 'Esther Brunner',
-      'email'  => 'wikidesign@gmail.com',
-      'date'   => '2007-02-21',
+      'author' => 'Gina Häußge, Michael Klier, Esther Brunner',
+      'email'  => 'dokuwiki@chimeric.de',
+      'date'   => '2008-02-14',
       'name'   => 'Task Plugin',
       'desc'   => 'Brings task management to DokuWiki',
-      'url'    => 'http://www.wikidesign.ch/en/plugin/task/start',
+      'url'    => 'http://wiki.splitbrain.org/plugin:task',
     );
   }
 
