@@ -320,7 +320,7 @@ class helper_plugin_task extends DokuWiki_Plugin {
   
     $text = str_replace('@PAGE@', $ID, $text);
     $text = str_replace('@TITLE@', $conf['title'], $text);
-    $text = str_replace('@DATE@', date($conf['dformat'], $task['date']), $text);
+    $text = str_replace('@DATE@', strftime($conf['dformat'], $task['date']), $text);
     $text = str_replace('@NAME@', $task['name'], $text);
     $text = str_replace('@STATUS@', $this->statusLabel($task['status']), $text);
     $text = str_replace('@PRIORITY@', $this->priorityLabel($task['priority']), $text);
@@ -381,8 +381,8 @@ class helper_plugin_task extends DokuWiki_Plugin {
    * Generates YYYYMMDD"T"hhmmss"Z" UTC time date format (ISO 8601 / RFC 3339)
    */
   function _vdate($date, $extended = false){
-    if ($extended) return gmdate('Y-m-d\TH:i:s\Z', $date);
-    else return gmdate('Ymd\THis\Z', $date);
+    if ($extended) return strftime('%Y-%m-%dT%H:%M:%SZ', $date);
+    else return strftime('%Y%m%dT%H%M%SZ', $date);
   }
   
   /**

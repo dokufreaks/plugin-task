@@ -214,10 +214,10 @@ class syntax_plugin_task_task extends DokuWiki_Syntax_Plugin {
     global $conf;
     
     // strip time from preferred date format
-    $onlydate = trim($conf['dformat'], 'AaBGgHhiOTZ:');
+    $onlydate = preg_replace('#%[HIMprRST]|:#', '', ($conf['dformat']));
     
     return '<abbr class="due" title="'.$this->my->_vdate($date, true).'">'.
-      date($onlydate, $date).
+      strftime($onlydate, $date).
       '</abbr>';
   }
 }
