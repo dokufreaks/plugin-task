@@ -1,0 +1,19 @@
+Hola!
+
+La siguiente tarea en el wiki @TITLE@ se ha creado o modificado.
+
+----------
+@PAGE@
+
+Asgnado a:   @NAME@
+Vencimiento: @DATE@
+Estado:      @STATUS@
+Prioridad:   @PRIORITY@
+----------
+
+Para cancelar la subscripción de esta página, autentifiquese en el wiki y haga click en el siguiente enlace:
+@UNSUBSCRIBE@
+
+--
+Este correo fue generado por DokuWiki en
+@DOKUWIKIURL@
