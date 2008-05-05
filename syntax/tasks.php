@@ -56,7 +56,7 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
     global $conf;
     
     list($ns, $filter, $flags, $refine) = $data;
-    
+
     if (!$filter || ($filter == 'select')){
       $select = true;
       $filter = $_REQUEST['filter'];
@@ -76,12 +76,15 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
       }
     }
     
-    if (!$pages){
-      if ($mode != 'xhtml') return true;
+    if(!$pages){
+      if($mode != 'xhtml') return true;
       $renderer->info['cache'] = false;
-      if ($select) $renderer->doc .= $this->_viewMenu($filter);
-      if (auth_quickaclcheck($ns.':*') >= AUTH_CREATE)
-        $renderer->doc .= $this->_newTaskForm($ns);
+      if($select) $renderer->doc .= $this->_viewMenu($filter);
+      if(auth_quickaclcheck($ns.':*') >= AUTH_CREATE) {
+        if(!in_array('noform', $flags)) {
+          $renderer->doc .= $this->_newTaskForm($ns);
+        }
+      }
       return true; // nothing to display
     }
     
@@ -102,8 +105,11 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
       
       // show form to create a new task?
       $perm_create = (auth_quickaclcheck($ns.':*') >= AUTH_CREATE);
-      if ($perm_create && ($this->getConf('tasks_formposition') == 'top'))
-        $renderer->doc .= $this->_newTaskForm($ns);
+      if($perm_create && ($this->getConf('tasks_formposition') == 'top')) {
+        if(!in_array('noform', $flags)) {
+          $renderer->doc .= $this->_newTaskForm($ns);
+        }
+      }
       
       // let Pagelist Plugin do the work for us
       if (plugin_isdisabled('pagelist')
@@ -133,8 +139,11 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
       $renderer->doc .= $this->_paginationLinks($numOfPages, $currentPage, $filter);      
       
       // show form to create a new task?
-      if ($perm_create && ($this->getConf('tasks_formposition') == 'bottom'))
-        $renderer->doc .= $this->_newTaskForm($ns);
+      if($perm_create && ($this->getConf('tasks_formposition') == 'bottom')) {
+        if(!in_array('noform', $flags)) {
+          $renderer->doc .= $this->_newTaskForm($ns);
+        }
+      }
       
       return true;
       
