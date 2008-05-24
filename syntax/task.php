@@ -72,6 +72,7 @@ class syntax_plugin_task_task extends DokuWiki_Syntax_Plugin {
                 }
             } elseif ($ACT == 'save') {
                 $my->writeTask($ID, $task);
+                $my->_notify($task);
             }
         }
         return array($user, $date, $priority);
