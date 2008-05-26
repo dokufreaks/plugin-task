@@ -117,7 +117,8 @@ class helper_plugin_task extends DokuWiki_Plugin {
             // skip closed tasks unless filter is 'all'
             if ($filter != 'all'){
                 if (($task['status'] < 0) || ($task['status'] > 3)) continue;
-                if ($responsible && ($task['status'] == 3)) continue;
+                // skip done tasks as well unless filter is 'done'
+                if ($filter != 'done' && $task['status'] == 3) continue;
             }
 
             // skip other's tasks if filter is 'my'
@@ -127,7 +128,7 @@ class helper_plugin_task extends DokuWiki_Plugin {
             if (($filter == 'new') && ($task['user']['name'] || ($task['status'] != 0))) continue;
 
             // skip not done and my tasks if filter is 'done'
-            if (($filter == 'done') && ($responsible || ($task['status'] != 3))) continue;
+            if (($filter == 'done') && ($task['status'] != 3)) continue;
 
             // filter is 'due' or 'overdue' 
             if (in_array($filter, array('due', 'overdue'))){
