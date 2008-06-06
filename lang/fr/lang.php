@@ -7,16 +7,16 @@
  */
 
 // custom language strings for the plugin
-$lang['task']     = 'Tache';
-$lang['tasks']    = 'taches';
-$lang['newtask']  = 'nouvelle tache';
+$lang['task']     = 'Tâche';
+$lang['tasks']    = 'tâches';
+$lang['newtask']  = 'nouvelle tâche';
 $lang['user']     = 'affectée à';
 $lang['date']     = 'Date limite';
 
 $lang['priority'] = 'priorité';
 $lang['low']      = 'faible';
 $lang['medium']   = 'moyenne';
-$lang['high']     = 'élevé';
+$lang['high']     = 'élevée';
 $lang['critical'] = 'critique';
 
 $lang['status']   = 'Statut';
@@ -27,19 +27,19 @@ $lang['started']  = 'démarrée';
 $lang['done']     = 'fait';
 $lang['verified'] = 'verfiée';
 
-$lang['mail_newtask']      = 'ajout de nouvelle tache';
-$lang['mail_changedtask']  = 'statut de la tache modifié';
+$lang['mail_newtask']      = 'ajout de nouvelle tâche';
+$lang['mail_changedtask']  = 'statut de la tâche modifiée';
 
-$lang['view']         = 'Visualiser les taches:';
-$lang['view_all']     = 'tous';
-$lang['view_open']    = 'oovert';
-$lang['view_my']      = 'ma';
-$lang['view_new']     = 'nouvelle';
-$lang['view_done']    = 'fait';
-$lang['view_due']     = 'attendue';
-$lang['view_overdue'] = 'dépassée';
+$lang['view']         = 'Visualiser les tâches:';
+$lang['view_all']     = 'toutes';
+$lang['view_open']    = 'ouvertes';
+$lang['view_my']      = 'les miennes';
+$lang['view_new']     = 'nouvelles';
+$lang['view_done']    = 'faîtes';
+$lang['view_due']     = 'attendues';
+$lang['view_overdue'] = 'dépassées';
 
-$lang['btn_change']   = 'Change';
+$lang['btn_change']   = 'Modifier';
 $lang['btn_refresh']  = 'Actualiser';
 
 //Setup VIM: ex: et ts=2 enc=utf-8 :
