@@ -12,7 +12,7 @@ if (!defined('DOKU_TAB')) define('DOKU_TAB', "\t");
 
 class helper_plugin_task extends DokuWiki_Plugin {
 
-    function getInfo(){
+    function getInfo() {
         return array(
                 'author' => 'Gina Häußge, Michael Klier, Esther Brunner',
                 'email'  => 'dokuwiki@chimeric.de',
@@ -23,7 +23,7 @@ class helper_plugin_task extends DokuWiki_Plugin {
                 );
     }
   
-    function getMethods(){
+    function getMethods() {
         $result = array();
         $result[] = array(
                 'name'   => 'th',
@@ -71,14 +71,14 @@ class helper_plugin_task extends DokuWiki_Plugin {
     /**
      * Returns the column header for the Pagelist Plugin
      */
-    function th(){
+    function th() {
         return $this->getLang('status');
     }
 
     /**
      * Returns the status of the task
      */
-    function td($id){
+    function td($id) {
         $task = $this->readTask($id);
         return $this->statusLabel($task['status']);
     }
@@ -86,7 +86,7 @@ class helper_plugin_task extends DokuWiki_Plugin {
     /**
      * Returns an array of task pages, sorted by priority
      */
-    function getTasks($ns, $num = NULL, $filter = ''){
+    function getTasks($ns, $num = NULL, $filter = '') {
         global $conf;
 
         if (!$filter) $filter = strtolower($_REQUEST['filter']);
@@ -101,7 +101,7 @@ class helper_plugin_task extends DokuWiki_Plugin {
 
         // add pages with comments to result
         $result = array();
-        foreach ($items as $item){
+        foreach ($items as $item) {
             $id   = ($ns ? $ns.':' : '').$item['id'];
 
             // skip if no permission
@@ -115,7 +115,7 @@ class helper_plugin_task extends DokuWiki_Plugin {
             $responsible = $this->_isResponsible($task['user']);
 
             // skip closed tasks unless filter is 'all'
-            if ($filter != 'all'){
+            if ($filter != 'all') {
                 if (($task['status'] < 0) || ($task['status'] > 3)) continue;
                 // skip done tasks as well unless filter is 'done'
                 if ($filter != 'done' && $task['status'] == 3) continue;
@@ -131,7 +131,7 @@ class helper_plugin_task extends DokuWiki_Plugin {
             if (($filter == 'done') && ($task['status'] != 3)) continue;
 
             // filter is 'due' or 'overdue' 
-            if (in_array($filter, array('due', 'overdue'))){
+            if (in_array($filter, array('due', 'overdue'))) {
                 if (!$date || ($date > time()) || ($task['status'] > 2)) continue;
                 elseif (($date + 86400 < time()) && ($filter == 'due')) continue;
                 elseif (($date + 86400 > time()) && ($filter == 'overdue')) continue;
@@ -160,11 +160,11 @@ class helper_plugin_task extends DokuWiki_Plugin {
     /**
      * Reads the .task metafile
      */
-    function readTask($id){
+    function readTask($id) {
         $file = metaFN($id, '.task');
-        if (!@file_exists($file)){
+        if (!@file_exists($file)) {
             $data = p_get_metadata($id, 'task');
-            if (is_array($data)){
+            if (is_array($data)) {
                 $data['date'] = array('due' => $data['date']);
                 $data['user'] = array('name' => $data['user']);
                 $meta = array('task' => NULL);
@@ -182,7 +182,7 @@ class helper_plugin_task extends DokuWiki_Plugin {
     /**
      * Saves the .task metafile
      */
-    function writeTask($id, $data){
+    function writeTask($id, $data) {
         if (!is_array($data)) return false;
         $file = ($data['file'] ? $data['file'] : metaFN($id, '.task'));
 
@@ -224,8 +224,8 @@ class helper_plugin_task extends DokuWiki_Plugin {
     /**
      * Returns the label of a status
      */
-    function statusLabel($status){
-        switch ($status){
+    function statusLabel($status) {
+        switch ($status) {
             case -1:
                 return $this->getLang('rejected');
             case 1:
@@ -244,8 +244,8 @@ class helper_plugin_task extends DokuWiki_Plugin {
     /**
      * Returns the label of a priority
      */
-    function priorityLabel($priority){
-        switch ($priority){
+    function priorityLabel($priority) {
+        switch ($priority) {
             case 1:
                 return $this->getLang('medium');
             case 2:
@@ -260,7 +260,7 @@ class helper_plugin_task extends DokuWiki_Plugin {
     /**
      * Is the given task assigned to the current user?
      */
-    function _isResponsible($user){
+    function _isResponsible($user) {
         global $INFO;
 
         if (!$user) return false;
@@ -275,16 +275,16 @@ class helper_plugin_task extends DokuWiki_Plugin {
     /**
      * Interpret date with strtotime()
      */
-    function _interpretDate($str){
+    function _interpretDate($str) {
         if (!$str) return NULL;
 
         // only year given -> time till end of year
-        if (preg_match("/^\d{4}$/", $str)){
+        if (preg_match("/^\d{4}$/", $str)) {
             $str .= '-12-31';
 
             // only month given -> time till last of month
-        } elseif (preg_match("/^\d{4}-(\d{2})$/", $str, $month)){
-            switch ($month[1]){
+        } elseif (preg_match("/^\d{4}-(\d{2})$/", $str, $month)) {
+            switch ($month[1]) {
                 case '01': case '03': case '05': case '07': case '08': case '10': case '12':
                     $str .= '-31';
                     break;
@@ -311,7 +311,7 @@ class helper_plugin_task extends DokuWiki_Plugin {
      * @author Andreas Gohr <andi@splitbrain.org>
      * @author Esther Brunner <wikidesign@gmail.com>
      */
-    function _notify($task){
+    function _notify($task) {
         global $conf;
         global $ID;
 
@@ -345,7 +345,7 @@ class helper_plugin_task extends DokuWiki_Plugin {
     /**
      * Generates a VTODO section for iCal file download
      */
-    function _vtodo($id, $task){
+    function _vtodo($id, $task) {
         if (!defined('CRLF')) define('CRLF', "\r\n");
 
         $meta = p_get_metadata($id);
@@ -379,7 +379,7 @@ class helper_plugin_task extends DokuWiki_Plugin {
     /**
      * Encodes vCard / iCal special characters
      */
-    function _vsc($string){
+    function _vsc($string) {
         $search = array("\\", ",", ";", "\n", "\r");
         $replace = array("\\\\", "\\,", "\\;", "\\n", "\\n");
         return str_replace($search, $replace, $string);
@@ -388,7 +388,7 @@ class helper_plugin_task extends DokuWiki_Plugin {
     /**
      * Generates YYYYMMDD"T"hhmmss"Z" UTC time date format (ISO 8601 / RFC 3339)
      */
-    function _vdate($date, $extended = false){
+    function _vdate($date, $extended = false) {
         if ($extended) return strftime('%Y-%m-%dT%H:%M:%SZ', $date);
         else return strftime('%Y%m%dT%H%M%SZ', $date);
     }
@@ -396,8 +396,8 @@ class helper_plugin_task extends DokuWiki_Plugin {
     /**
      * Returns VTODO status
      */
-    function _vstatus($status){
-        switch ($status){
+    function _vstatus($status) {
+        switch ($status) {
             case -1:
                 return 'CANCELLED';
             case 1: 
@@ -414,7 +414,7 @@ class helper_plugin_task extends DokuWiki_Plugin {
     /**
      * Returns VTODO categories
      */
-    function _vcategories($cat){
+    function _vcategories($cat) {
         if (!is_array($cat)) $cat = explode(' ', $cat);
         return join(',', $this->_vsc($cat));
     }
@@ -422,7 +422,7 @@ class helper_plugin_task extends DokuWiki_Plugin {
     /**
      * Returns access classification for VTODO
      */
-    function _vclass($id){
+    function _vclass($id) {
         global $USERINFO; // checks access rights for anonymous user
         if (auth_aclcheck($id, '', $USERINFO['grps'])) return 'PUBLIC';
         else return 'PRIVATE';

@@ -23,7 +23,7 @@ class syntax_plugin_task_task extends DokuWiki_Syntax_Plugin {
     /**
      * return some information about the plugin
      */
-    function getInfo(){
+    function getInfo() {
         return array(
             'author' => 'Gina Häußge, Michael Klier, Esther Brunner',
             'email'  => 'dokuwiki@chimeric.de',
@@ -34,15 +34,15 @@ class syntax_plugin_task_task extends DokuWiki_Syntax_Plugin {
         );
     }
 
-    function getType(){ return 'substition'; }
-    function getSort(){ return 305; }
-    function getPType(){ return 'block';}
+    function getType() { return 'substition'; }
+    function getSort() { return 305; }
+    function getPType() { return 'block';}
   
     function connectTo($mode) {
         $this->Lexer->addSpecialPattern('~~TASK.*?~~', $mode, 'plugin_task_task');
     }
   
-    function handle($match, $state, $pos, &$handler){
+    function handle($match, $state, $pos, &$handler) {
         global $ID;
         global $INFO;
         global $ACT;
@@ -76,7 +76,7 @@ class syntax_plugin_task_task extends DokuWiki_Syntax_Plugin {
         return array($user, $date, $priority);
     }      
  
-    function render($mode, &$renderer, $data){  
+    function render($mode, &$renderer, $data) {  
         global $ID;
 
         list($user, $date, $priority) = $data;
@@ -103,7 +103,7 @@ class syntax_plugin_task_task extends DokuWiki_Syntax_Plugin {
 
             $class = ' class="vtodo';
             if ($priority) $class .= ' priority' . $priority;
-            if ($due){
+            if ($due) {
                 $class .= ' '.$due;
                 $due = ' class="'.$due.'"';
             }
@@ -140,7 +140,7 @@ class syntax_plugin_task_task extends DokuWiki_Syntax_Plugin {
             return true;
       
         // for metadata renderer
-        } elseif ($mode == 'metadata'){
+        } elseif ($mode == 'metadata') {
             return true;
         }
 
@@ -150,7 +150,7 @@ class syntax_plugin_task_task extends DokuWiki_Syntax_Plugin {
     /**
      * Outputs a table row
      */
-    function _tablerow($header, $data, &$renderer, $trclass = '', $tdclass = ''){
+    function _tablerow($header, $data, &$renderer, $trclass = '', $tdclass = '') {
         if ($tdclass) $tdclass = ' class="'.$tdclass.'"';
 
         $renderer->doc .= DOKU_TAB.'<tr'.$trclass.'>'.DOKU_LF.DOKU_TAB.DOKU_TAB;
@@ -165,7 +165,7 @@ class syntax_plugin_task_task extends DokuWiki_Syntax_Plugin {
     /**
      * Loads the helper plugin and gets task data for current ID
      */
-    function _loadHelper(){
+    function _loadHelper() {
         global $ID;
         $this->my =& plugin_load('helper', 'task');
         if (!is_object($this->my)) return false;
@@ -176,16 +176,16 @@ class syntax_plugin_task_task extends DokuWiki_Syntax_Plugin {
     /**
      * Returns the status cell contents
      */
-    function _getStatus($user, &$status){
+    function _getStatus($user, &$status) {
         global $INFO;
 
         $ret = '';
         $status = $this->task['status'];
         $responsible = $this->my->_isResponsible($user);
 
-        if ($INFO['perm'] == AUTH_ADMIN){
+        if ($INFO['perm'] == AUTH_ADMIN) {
             $ret = $this->_statusMenu(array(-1, 0, 1, 2, 3, 4), $status);
-        } elseif ($responsible){
+        } elseif ($responsible) {
             if ($status < 3) $ret = $this->_statusMenu(array(-1, 0, 1, 2, 3), $status);
         } else {
             if ($status == 0) {
@@ -203,7 +203,7 @@ class syntax_plugin_task_task extends DokuWiki_Syntax_Plugin {
     /**
      * Returns the XHTML for the status popup menu
      */
-    function _statusMenu($options, $status){
+    function _statusMenu($options, $status) {
         global $ID;
         global $lang;
 
@@ -213,7 +213,7 @@ class syntax_plugin_task_task extends DokuWiki_Syntax_Plugin {
             DOKU_TAB.'<input type="hidden" name="do" value="changetask" />'.DOKU_LF.
             DOKU_TAB.'<select name="status" size="1" class="edit">'.DOKU_LF;
 
-        foreach ($options as $option){
+        foreach ($options as $option) {
             $ret .= DOKU_TAB.DOKU_TAB.'<option value="'.$option.'"';
             if ($status == $option) $ret .= ' selected="selected"';
             $ret .= '>'.$this->my->statusLabel($option).'</option>'.DOKU_LF;
@@ -229,7 +229,7 @@ class syntax_plugin_task_task extends DokuWiki_Syntax_Plugin {
     /**
      * Returns the download link for the iCal file
      */
-    function _icsDownload(){
+    function _icsDownload() {
         global $ID;
         global $INFO;
 
@@ -248,14 +248,14 @@ class syntax_plugin_task_task extends DokuWiki_Syntax_Plugin {
     /**
      * Returns the organizer in hCalendar format as hCard
      */
-    function _hCalUser($user){
+    function _hCalUser($user) {
         return '<span class="vcard"><span class="fn">' . hsc($user) . '</span></span>';
     }
 
     /**
      * Returns the date in hCalendar format
      */
-    function _hCalDate($date){
+    function _hCalDate($date) {
         global $conf;
 
         // strip time from preferred date format
@@ -264,5 +264,4 @@ class syntax_plugin_task_task extends DokuWiki_Syntax_Plugin {
         return '<abbr class="due" title="'.$this->my->_vdate($date, true).'">' . strftime($onlydate, $date) . '</abbr>';
     }
 }
- 
-//Setup VIM: ex: et ts=4 enc=utf-8 :
+//vim:ts=4:sw=4:et:enc=utf-8: 

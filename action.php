@@ -15,7 +15,7 @@ class action_plugin_task extends DokuWiki_Action_Plugin {
     /**
      * return some info
      */
-    function getInfo(){
+    function getInfo() {
         return array(
                 'author' => 'Gina Häußge, Michael Klier, Esther Brunner',
                 'email'  => 'dokuwiki@chimeric.de',
@@ -41,7 +41,7 @@ class action_plugin_task extends DokuWiki_Action_Plugin {
      * Checks if 'newentry' was given as action, if so we
      * do handle the event our self and no further checking takes place
      */
-    function handle_act_preprocess(&$event, $param){
+    function handle_act_preprocess(&$event, $param) {
         if ($event->data != 'newtask' && $event->data != 'changetask') return;
 
         // we can handle it -> prevent others
@@ -61,7 +61,7 @@ class action_plugin_task extends DokuWiki_Action_Plugin {
     /**
      * Creates a new task page
      */
-    function _newTask(){
+    function _newTask() {
         global $ID;
         global $INFO;
 
@@ -116,7 +116,7 @@ class action_plugin_task extends DokuWiki_Action_Plugin {
     /**
      * Adapted version of pageTemplate() function
      */
-    function _pageTemplate($data){
+    function _pageTemplate($data) {
         global $INFO;
 
         $id   = $data['id'];
@@ -160,7 +160,7 @@ class action_plugin_task extends DokuWiki_Action_Plugin {
     /**
      * Changes the status of a task
      */
-    function _changeTask(){
+    function _changeTask() {
         global $ID;
         global $INFO;
 
@@ -180,7 +180,7 @@ class action_plugin_task extends DokuWiki_Action_Plugin {
 
         // some additional checks if change not performed by an admin
         // FIXME error messages?
-        if ($INFO['perm'] != AUTH_ADMIN){
+        if ($INFO['perm'] != AUTH_ADMIN) {
 
             // responsible person can't verify her / his own tasks
             if ($responsible && ($status == 4)) return 'show';
@@ -216,5 +216,4 @@ class action_plugin_task extends DokuWiki_Action_Plugin {
         return 'show';
     }
 }
-
 //vim:ex:et:ts=4:enc=utf-8:
