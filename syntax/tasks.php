@@ -17,7 +17,7 @@ require_once(DOKU_PLUGIN.'syntax.php');
 
 class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
 
-    function getInfo(){
+    function getInfo() {
         return array(
                 'author' => 'Gina Häußge, Michael Klier, Esther Brunner',
                 'email'  => 'dokuwiki@chimeric.de',
@@ -28,15 +28,15 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
                 );
     }
 
-    function getType(){ return 'substition'; }
-    function getPType(){ return 'block'; }
-    function getSort(){ return 306; }
+    function getType() { return 'substition'; }
+    function getPType() { return 'block'; }
+    function getSort() { return 306; }
   
-    function connectTo($mode){
+    function connectTo($mode) {
         $this->Lexer->addSpecialPattern('\{\{tasks>.+?\}\}', $mode, 'plugin_task_tasks');
     }
 
-    function handle($match, $state, $pos, &$handler){
+    function handle($match, $state, $pos, &$handler) {
         global $ID;
 
         $match = substr($match, 8, -2); // strip {{topic> from start and }} from end
@@ -52,12 +52,12 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
         return array($ns, $filter, $flags, $refine);
     }
 
-    function render($mode, &$renderer, $data){
+    function render($mode, &$renderer, $data) {
         global $conf;
 
         list($ns, $filter, $flags, $refine) = $data;
 
-        if (!$filter || ($filter == 'select')){
+        if (!$filter || ($filter == 'select')) {
             $select = true;
             $filter = $_REQUEST['filter'];
         }
@@ -68,15 +68,15 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
         if ($my =& plugin_load('helper', 'task')) $pages = $my->getTasks($ns, NULL, $filter);
 
         // use tag refinements?
-        if ($refine){
-            if (plugin_isdisabled('tag') || (!$tag = plugin_load('helper', 'tag'))){
+        if ($refine) {
+            if (plugin_isdisabled('tag') || (!$tag = plugin_load('helper', 'tag'))) {
                 msg('The Tag Plugin must be installed to use tag refinements.', -1);
             } else {
                 $pages = $tag->tagRefine($pages, $refine);
             }
         }
 
-        if(!$pages){
+        if(!$pages) {
             if($mode != 'xhtml') return true;
             $renderer->info['cache'] = false;
             if($select) $renderer->doc .= $this->_viewMenu($filter);
@@ -90,7 +90,7 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
 
         // prepare pagination
         $c = count($pages);
-        if ($c > $conf['recent']){
+        if ($c > $conf['recent']) {
             $numOfPages = ceil($c / $conf['recent']);
             $first = $_REQUEST['first'];
             if (!is_numeric($first)) $first = 0;
@@ -98,7 +98,7 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
             $pages = array_slice($pages, $first, $conf['recent']);
         }
 
-        if ($mode == 'xhtml'){
+        if ($mode == 'xhtml') {
 
             // prevent caching to ensure content is always fresh
             $renderer->info['cache'] = false;
@@ -113,7 +113,7 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
 
             // let Pagelist Plugin do the work for us
             if (plugin_isdisabled('pagelist')
-                    || (!$pagelist = plugin_load('helper', 'pagelist'))){
+                    || (!$pagelist = plugin_load('helper', 'pagelist'))) {
                 msg('The Pagelist Plugin must be installed for task lists.', -1);
                 return false;
             }
@@ -132,7 +132,7 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
 
             // output list
             $pagelist->startList();
-            foreach ($pages as $page){
+            foreach ($pages as $page) {
                 $pagelist->addPage($page);
             }
             $renderer->doc .= $pagelist->finishList();
@@ -148,8 +148,8 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
             return true;
 
             // for metadata renderer
-        } elseif ($mode == 'metadata'){
-            foreach ($pages as $page){
+        } elseif ($mode == 'metadata') {
+            foreach ($pages as $page) {
                 $renderer->meta['relation']['references'][$page['id']] = true;
             }
 
@@ -163,7 +163,7 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
     /**
     * Show a popup to select the task view filter
     */
-    function _viewMenu($filter){
+    function _viewMenu($filter) {
         global $ID, $lang;
 
         $options = $this->_viewFilters();
@@ -175,7 +175,7 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
             DOKU_TAB.'<input type="hidden" name="id" value="'.$ID.'" />'.DOKU_LF.
             DOKU_TAB.'<input type="hidden" name="do" value="show" />'.DOKU_LF.
             DOKU_TAB.'<select name="filter" size="1" class="edit">'.DOKU_LF;
-        foreach ($options as $option){
+        foreach ($options as $option) {
             $ret .= DOKU_TAB.DOKU_TAB.'<option value="'.$option.'"';
             if ($filter == $option) $ret .= ' selected="selected"';
             $ret .= '>'.$this->getLang('view_'.$option).'</option>'.DOKU_LF;
@@ -191,10 +191,10 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
    /**
     * Returns an array of available view filters for the task list
     */
-    function _viewFilters(){
+    function _viewFilters() {
         if (!$_SERVER['REMOTE_USER']) $filters = array('all', 'open', 'done');
         else $filters = array('all', 'open', 'my', 'new', 'done');
-        if ($this->getConf('datefield')){
+        if ($this->getConf('datefield')) {
             $filters[] = 'due';
             $filters[] = 'overdue';
         }
@@ -204,13 +204,13 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
     /**
     * Returns pagination links if more than one page
     */
-    function _paginationLinks($num, $cur, $filter){
+    function _paginationLinks($num, $cur, $filter) {
         global $ID, $conf;
 
         if (!is_numeric($num) || ($num < 2)) return '';
 
         $ret = array();
-        for ($i = 1; $i <= $num; $i++){
+        for ($i = 1; $i <= $num; $i++) {
             if ($i == $cur) $ret[] = '<strong>'.$i.'</strong>';
             else $ret[] = '<a href="'.wl($ID, array('first' => $conf['recent'] * ($i - 1),
                 'filter' => $filter)).'" class="wikilink1" alt="'.$i.'">'.$i.'</a>';
@@ -225,7 +225,7 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
      * 
      * FIXME use DokuWikis inc/form.php for this?
      */
-    function _newTaskForm($ns){
+    function _newTaskForm($ns) {
         global $ID, $lang, $INFO;
 
         $ret = '<div class="newtask_form">'.DOKU_LF.
@@ -240,7 +240,7 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
             DOKU_TAB.'<tr>'.DOKU_LF.
             DOKU_TAB.DOKU_TAB.'<th>'.$this->getLang('user').':</th><td><input type="text" name="user" value="'.hsc($INFO['userinfo']['name']).'" class="edit" tabindex="2" /></td>'.DOKU_LF.
             DOKU_TAB.'</tr>'.DOKU_LF;
-        if ($this->getConf('datefield')){ // field for due date
+        if ($this->getConf('datefield')) { // field for due date
             $ret .= DOKU_TAB.'<tr>'.DOKU_LF.
                 DOKU_TAB.DOKU_TAB.'<th>'.$this->getLang('date').':</th><td><input type="text" name="date" value="'.date('Y-m-d').'" class="edit" tabindex="3" /></td>'.DOKU_LF.
                 DOKU_TAB.'</tr>'.DOKU_LF;
