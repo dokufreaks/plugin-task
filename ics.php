@@ -37,4 +37,4 @@ header("Content-Type: text/Calendar; name='$filename'");
 
 echo $output;
 
-//vim:ts=4:sw=4:et:enc=utf-8:
+// vim:ts=4:sw=4:et:enc=utf-8:

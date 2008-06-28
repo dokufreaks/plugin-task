@@ -428,4 +428,4 @@ class helper_plugin_task extends DokuWiki_Plugin {
         else return 'PRIVATE';
     }
 }
-//vim:ex:et:ts=4:enc=utf-8:
+// vim:ts=4:sw=4:et:enc=utf-8:

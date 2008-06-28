@@ -264,4 +264,4 @@ class syntax_plugin_task_task extends DokuWiki_Syntax_Plugin {
         return '<abbr class="due" title="'.$this->my->_vdate($date, true).'">' . strftime($onlydate, $date) . '</abbr>';
     }
 }
-//vim:ts=4:sw=4:et:enc=utf-8: 
+// vim:ts=4:sw=4:et:enc=utf-8: 

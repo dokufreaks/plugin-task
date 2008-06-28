@@ -216,4 +216,4 @@ class action_plugin_task extends DokuWiki_Action_Plugin {
         return 'show';
     }
 }
-//vim:ex:et:ts=4:enc=utf-8:
+// vim:ts=4:sw=4:et:enc=utf-8:
