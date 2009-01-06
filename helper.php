@@ -16,8 +16,8 @@ class helper_plugin_task extends DokuWiki_Plugin {
         return array(
                 'author' => 'Gina Häußge, Michael Klier, Esther Brunner',
                 'email'  => 'dokuwiki@chimeric.de',
-                'date'   => '2008-05-24',
-                'name'   => 'Task Plugin (helper class)',
+                'date'   => @file_get_contents(DOKU_PLUGIN.'task/VERSION'),
+                'name'   => 'Task Plugin (helper component)',
                 'desc'   => 'Functions to get info about tasks',
                 'url'    => 'http://wiki.splitbrain.org/plugin:task',
                 );

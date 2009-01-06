@@ -19,8 +19,8 @@ class action_plugin_task extends DokuWiki_Action_Plugin {
         return array(
                 'author' => 'Gina Häußge, Michael Klier, Esther Brunner',
                 'email'  => 'dokuwiki@chimeric.de',
-                'date'   => '2008-05-24',
-                'name'   => 'Task Plugin',
+                'date'   => @file_get_contents(DOKU_PLUGIN.'task/VERSION'),
+                'name'   => 'Task Plugin (action component)',
                 'desc'   => 'Brings task management to DokuWiki',
                 'url'    => 'http://wiki.splitbrain.org/plugin:task',
                 );

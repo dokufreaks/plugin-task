@@ -21,7 +21,7 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
         return array(
                 'author' => 'Gina Häußge, Michael Klier, Esther Brunner',
                 'email'  => 'dokuwiki@chimeric.de',
-                'date'   => '2008-05-24',
+                'date'   => @file_get_contents(DOKU_PLUGIN.'task/VERSION'),
                 'name'   => 'Task Plugin (tasks component)',
                 'desc'   => 'Lists tasks of a given namespace',
                 'url'    => 'http://wiki.splitbrain.org/plugin:task',
@@ -132,9 +132,9 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
 
             // output list
             $pagelist->startList();
-			if($this->getConf('tasks_newestfirst')) {
-				$pages = array_reverse($pages);
-			}
+            if($this->getConf('tasks_newestfirst')) {
+                $pages = array_reverse($pages);
+            }
             foreach ($pages as $page) {
                 $pagelist->addPage($page);
             }
@@ -265,4 +265,4 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
         return $ret;
     }
 }
-// vim:ex:et:ts=4enc=utf-8:
+// vim:ex:et:ts=4:sw=4:enc=utf-8:

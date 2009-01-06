@@ -27,7 +27,7 @@ class syntax_plugin_task_task extends DokuWiki_Syntax_Plugin {
         return array(
             'author' => 'Gina Häußge, Michael Klier, Esther Brunner',
             'email'  => 'dokuwiki@chimeric.de',
-            'date'   => '2008-05-24',
+            'date'   => @file_get_contents(DOKU_PLUGIN.'task/VERSION'),
             'name'   => 'Task Plugin (task component)',
             'desc'   => 'Handles indivudual tasks on a wiki page',
             'url'    => 'http://wiki.splitbrain.org/plugin:task',
