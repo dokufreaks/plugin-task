@@ -132,6 +132,9 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
 
             // output list
             $pagelist->startList();
+			if($this->getConf('tasks_newestfirst')) {
+				$pages = array_reverse($pages);
+			}
             foreach ($pages as $page) {
                 $pagelist->addPage($page);
             }

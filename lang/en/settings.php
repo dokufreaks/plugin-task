@@ -14,4 +14,6 @@ $lang['tasks_formposition_o_none']   = 'none';
 $lang['tasks_formposition_o_top']    = 'top';
 $lang['tasks_formposition_o_bottom'] = 'bottom';
 
+$lang['tasks_newewstfirst']          = 'show newewst tasks first in tasks list';
+
 //Setup VIM: ex: et ts=2 enc=utf-8 :
