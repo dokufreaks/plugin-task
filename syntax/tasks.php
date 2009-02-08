@@ -90,12 +90,13 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
 
         // prepare pagination
         $c = count($pages);
-        if ($c > $conf['recent']) {
-            $numOfPages = ceil($c / $conf['recent']);
+        $perpage = ($conf['recent'] != 0) ? $conf['recent'] : 20; // prevent division by zero
+        if ($c > $perpage) {
+            $numOfPages = ceil($c / $perpage);
             $first = $_REQUEST['first'];
             if (!is_numeric($first)) $first = 0;
-            $currentPage = round($first / $conf['recent']) + 1;
-            $pages = array_slice($pages, $first, $conf['recent']);
+            $currentPage = round($first / $perpage) + 1;
+            $pages = array_slice($pages, $first, $perpage);
         }
 
         if ($mode == 'xhtml') {
@@ -211,11 +212,12 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
         global $ID, $conf;
 
         if (!is_numeric($num) || ($num < 2)) return '';
+        $perpage = ($conf['recent'] != 0) ? $conf['recent'] : 20; // prevent division by zero
 
         $ret = array();
         for ($i = 1; $i <= $num; $i++) {
             if ($i == $cur) $ret[] = '<strong>'.$i.'</strong>';
-            else $ret[] = '<a href="'.wl($ID, array('first' => $conf['recent'] * ($i - 1),
+            else $ret[] = '<a href="'.wl($ID, array('first' => $perpage * ($i - 1),
                 'filter' => $filter)).'" class="wikilink1" alt="'.$i.'">'.$i.'</a>';
         }
         return '<div class="centeralign">'.DOKU_LF.
