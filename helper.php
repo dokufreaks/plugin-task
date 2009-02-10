@@ -86,7 +86,7 @@ class helper_plugin_task extends DokuWiki_Plugin {
     /**
      * Returns an array of task pages, sorted by priority
      */
-    function getTasks($ns, $num = NULL, $filter = '') {
+    function getTasks($ns, $num = NULL, $filter = '', $user = NULL) {
         global $conf;
 
         if (!$filter) $filter = strtolower($_REQUEST['filter']);
@@ -122,7 +122,7 @@ class helper_plugin_task extends DokuWiki_Plugin {
             }
 
             // skip other's tasks if filter is 'my'
-            if (($filter == 'my') && !$responsible) continue;
+            if ($user && !$responsible) continue;
 
             // skip assigned and not new tasks if filter is 'new'
             if (($filter == 'new') && ($task['user']['name'] || ($task['status'] != 0))) continue;

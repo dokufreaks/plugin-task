@@ -64,8 +64,9 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
         $filter = strtolower($filter);
         $filters = $this->_viewFilters();
         if (!in_array($filter, $filters)) $filter = 'open';
+        if(isset($_REQUEST['view_user'])) $user = $_REQUEST['view_user'];
 
-        if ($my =& plugin_load('helper', 'task')) $pages = $my->getTasks($ns, NULL, $filter);
+        if ($this->helper =& plugin_load('helper', 'task')) $pages = $this->helper->getTasks($ns, NULL, $filter, $user);
 
         // use tag refinements?
         if ($refine) {
@@ -184,9 +185,17 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
             if ($filter == $option) $ret .= ' selected="selected"';
             $ret .= '>'.$this->getLang('view_'.$option).'</option>'.DOKU_LF;
         }
-        $ret .= DOKU_TAB.'</select>'.DOKU_LF.
-            DOKU_TAB.'<input class="button" type="submit" value="'.$this->getLang('btn_refresh').'" />'.DOKU_LF.
-            '</label>'.DOKU_LF.
+        $ret .= DOKU_TAB.'</select>'.DOKU_LF;
+        $ret .= '</label>'.DOKU_LF;
+
+        if(isset($_SERVER['REMOTE_USER'])) {
+            $ret .= '<label class="simple">'.DOKU_LF.'<span>'.$this->getLang('view_user').':</span>'.DOKU_LF;
+            $ret .= DOKU_TAB.'<input type="checkbox" name="view_user" value="' . $_SERVER['REMOTE_USER'] . '"';
+            $ret .= ($_REQUEST['view_user']) ? ' checked="checked"' : '';
+            $ret .= '/></label>'.DOKU_LF;
+        }
+
+        $ret .= DOKU_TAB.'<input class="button" type="submit" value="'.$this->getLang('btn_refresh').'" />'.DOKU_LF.
             '</form>'.DOKU_LF.
             '</div>'.DOKU_LF;
         return $ret;
@@ -197,7 +206,7 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
     */
     function _viewFilters() {
         if (!$_SERVER['REMOTE_USER']) $filters = array('all', 'open', 'done');
-        else $filters = array('all', 'open', 'my', 'new', 'done');
+        else $filters = array('all', 'open', 'new', 'done');
         if ($this->getConf('datefield')) {
             $filters[] = 'due';
             $filters[] = 'overdue';
@@ -216,9 +225,21 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
 
         $ret = array();
         for ($i = 1; $i <= $num; $i++) {
-            if ($i == $cur) $ret[] = '<strong>'.$i.'</strong>';
-            else $ret[] = '<a href="'.wl($ID, array('first' => $perpage * ($i - 1),
-                'filter' => $filter)).'" class="wikilink1" alt="'.$i.'">'.$i.'</a>';
+            if ($i == $cur) {
+                $ret[] = '<strong>'.$i.'</strong>';
+            } else {
+                $opt = array();
+                $opt['first']  = $perpage * ($i - 1);
+                $opt['filter'] = $filer;
+                if(isset($_REQUEST['view_user'])) {
+                    $user = array();
+                    $user['id'] = $_REQUEST['view_user'];
+                    if($this->helper->_isResponsible($user)) {
+                        $opt['view_user'] = $_REQUEST['view_user'];
+                    }
+                }
+                $ret[] = '<a href="'.wl($ID, $opt).'" class="wikilink1" title="'.$i.'">'.$i.'</a>';
+            }
         }
         return '<div class="centeralign">'.DOKU_LF.
             DOKU_TAB.join(' | ', $ret).DOKU_LF.

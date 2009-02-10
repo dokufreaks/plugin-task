@@ -66,6 +66,19 @@ div.dokuwiki div.task_viewmenu {
   margin-bottom: 0.5em;
 }
 
+div.dokuwiki form#task__changeview_form label {
+  float: left;
+  margin-right: 0.5em;
+}
+
+div.dokuwiki form#task__changeview_form input {
+  margin: 0.3em;
+}
+
+div.dokuwiki form#task__changeview_form input.button {
+  margin: 0;
+}
+
 div.dokuwiki th.status,
 div.dokuwiki td.status {
   color: __text_neu__;

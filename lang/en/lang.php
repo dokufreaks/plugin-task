@@ -38,6 +38,7 @@ $lang['view_new']     = 'new';
 $lang['view_done']    = 'done';
 $lang['view_due']     = 'due';
 $lang['view_overdue'] = 'overdue';
+$lang['view_user']    = 'Show only my tasks';
 
 $lang['btn_change']   = 'Change';
 $lang['btn_refresh']  = 'Refresh';
