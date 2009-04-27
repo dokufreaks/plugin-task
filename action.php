@@ -90,20 +90,17 @@ class action_plugin_task extends DokuWiki_Action_Plugin {
                 $priority = $_REQUEST['priority'];
 
                 // create wiki page
-                $TEXT = pageTemplate(array(($ns ? $ns.':' : '').$title));
-                if (!$TEXT) {
-                    $data = array(
-                            'id'       => $ID,
-                            'ns'       => $ns,
-                            'title'    => $title,
-                            'back'     => $back,
-                            'priority' => $priority,
-                            'user'     => $user,
-                            'date'     => $date,
-                            );
+                $data = array(
+                        'id'       => $ID,
+                        'ns'       => $ns,
+                        'title'    => $title,
+                        'back'     => $back,
+                        'priority' => $priority,
+                        'user'     => $user,
+                        'date'     => $date,
+                        );
 
-                    $TEXT = $this->_pageTemplate($data);
-                }
+                $TEXT = $this->_pageTemplate($data);
                 return 'preview';
             } else {
                 return 'edit';
