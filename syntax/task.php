@@ -133,7 +133,8 @@ class syntax_plugin_task_task extends DokuWiki_Syntax_Plugin {
                 $this->_tablerow('status', $status, $renderer);
             }
 
-            $renderer->table_close();
+            //$renderer->table_close($pos = null);
+            $renderer->doc .= '</table>';
             $renderer->doc .= '</fieldset>'.DOKU_LF.
             '</div>'.DOKU_LF;
 
