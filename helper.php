@@ -316,7 +316,7 @@ class helper_plugin_task extends DokuWiki_Plugin {
         global $ID;
 
         if ((!$conf['subscribers']) && (!$conf['notify'])) return; //subscribers enabled?
-        $bcc  = subscriber_addresslist($ID);
+        $bcc  = subscription_addresslist($ID);
         if ((empty($bcc)) && (!$conf['notify'])) return;
         $to   = $conf['notify'];
         $text = io_readFile($this->localFN('subscribermail'));
