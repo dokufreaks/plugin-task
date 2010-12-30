@@ -122,7 +122,7 @@ class helper_plugin_task extends DokuWiki_Plugin {
             }
 
             // skip other's tasks if filter is 'my'
-            if ($user && !$responsible) continue;
+            if (($filter == 'my') && (!$responsible)) continue;
 
             // skip assigned and not new tasks if filter is 'new'
             if (($filter == 'new') && ($task['user']['name'] || ($task['status'] != 0))) continue;
