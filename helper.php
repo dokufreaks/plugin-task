@@ -265,7 +265,7 @@ class helper_plugin_task extends DokuWiki_Plugin {
 
         if (!$user) return false;
 
-        if ($user['id'] == $_SERVER['REMOTE_USER'] || $user['name'] == $INFO['userinfo']['name'] || $user == $INFO['userinfo']['name']) {
+        if (isset($user['id']) && $user['id'] == $_SERVER['REMOTE_USER'] || isset($user['name']) && $user['name'] == $INFO['userinfo']['name'] || $user == $INFO['userinfo']['name']) {
             return true;
         }
 
