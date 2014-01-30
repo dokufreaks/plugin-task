@@ -97,7 +97,8 @@ class helper_plugin_task extends DokuWiki_Plugin {
 
         // returns the list of pages in the given namespace and it's subspaces
         $items = array();
-        search($items, $dir, 'search_allpages', '');
+        $opts = array();
+        search($items, $dir, 'search_allpages', $opts);
 
         // add pages with comments to result
         $result = array();
