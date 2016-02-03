@@ -29,7 +29,7 @@ class action_plugin_task extends DokuWiki_Action_Plugin {
     /**
      * register the eventhandlers
      */
-    function register(&$contr) {
+    function register(Doku_Event_Handler $contr) {
         $contr->register_hook('ACTION_ACT_PREPROCESS',
                             'BEFORE',
                             $this,

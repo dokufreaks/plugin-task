@@ -36,7 +36,7 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
         $this->Lexer->addSpecialPattern('\{\{tasks>.+?\}\}', $mode, 'plugin_task_tasks');
     }
 
-    function handle($match, $state, $pos, &$handler) {
+    function handle($match, $state, $pos, Doku_Handler $handler) {
         global $ID;
 
         $match = substr($match, 8, -2); // strip {{topic> from start and }} from end
@@ -52,7 +52,7 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
         return array($ns, $filter, $flags, $refine);
     }
 
-    function render($mode, &$renderer, $data) {
+    function render($mode, Doku_Renderer $renderer, $data) {
         global $conf;
 
         list($ns, $filter, $flags, $refine) = $data;
