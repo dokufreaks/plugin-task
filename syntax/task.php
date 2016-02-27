@@ -42,7 +42,7 @@ class syntax_plugin_task_task extends DokuWiki_Syntax_Plugin {
         $this->Lexer->addSpecialPattern('~~TASK.*?~~', $mode, 'plugin_task_task');
     }
   
-    function handle($match, $state, $pos, &$handler) {
+    function handle($match, $state, $pos, Doku_Handler $handler) {
         global $ID;
         global $INFO;
         global $ACT;
@@ -78,7 +78,7 @@ class syntax_plugin_task_task extends DokuWiki_Syntax_Plugin {
         return array($user, $date, $priority);
     }      
  
-    function render($mode, &$renderer, $data) {  
+    function render($mode, Doku_Renderer $renderer, $data) {  
         global $ID;
 
         list($user, $date, $priority) = $data;
