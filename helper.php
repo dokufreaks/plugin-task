@@ -11,17 +11,6 @@ if (!defined('DOKU_LF')) define('DOKU_LF', "\n");
 if (!defined('DOKU_TAB')) define('DOKU_TAB', "\t");
 
 class helper_plugin_task extends DokuWiki_Plugin {
-
-    function getInfo() {
-        return array(
-                'author' => 'Gina Häußge, Michael Klier, Esther Brunner',
-                'email'  => 'dokuwiki@chimeric.de',
-                'date'   => @file_get_contents(DOKU_PLUGIN.'task/VERSION'),
-                'name'   => 'Task Plugin (helper component)',
-                'desc'   => 'Functions to get info about tasks',
-                'url'    => 'http://wiki.splitbrain.org/plugin:task',
-                );
-    }
   
     function getMethods() {
         $result = array();

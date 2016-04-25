@@ -13,20 +13,6 @@ require_once(DOKU_PLUGIN.'action.php');
 class action_plugin_task extends DokuWiki_Action_Plugin {
 
     /**
-     * return some info
-     */
-    function getInfo() {
-        return array(
-                'author' => 'Gina Häußge, Michael Klier, Esther Brunner',
-                'email'  => 'dokuwiki@chimeric.de',
-                'date'   => @file_get_contents(DOKU_PLUGIN.'task/VERSION'),
-                'name'   => 'Task Plugin (action component)',
-                'desc'   => 'Brings task management to DokuWiki',
-                'url'    => 'http://wiki.splitbrain.org/plugin:task',
-                );
-    }
-
-    /**
      * register the eventhandlers
      */
     function register(Doku_Event_Handler $contr) {

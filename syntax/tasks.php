@@ -17,17 +17,6 @@ require_once(DOKU_PLUGIN.'syntax.php');
 
 class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
 
-    function getInfo() {
-        return array(
-                'author' => 'Gina Häußge, Michael Klier, Esther Brunner',
-                'email'  => 'dokuwiki@chimeric.de',
-                'date'   => @file_get_contents(DOKU_PLUGIN.'task/VERSION'),
-                'name'   => 'Task Plugin (tasks component)',
-                'desc'   => 'Lists tasks of a given namespace',
-                'url'    => 'http://wiki.splitbrain.org/plugin:task',
-                );
-    }
-
     function getType() { return 'substition'; }
     function getPType() { return 'block'; }
     function getSort() { return 306; }
