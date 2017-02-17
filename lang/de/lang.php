@@ -30,14 +30,19 @@ $lang['verified'] = 'überprüft';
 $lang['mail_newtask']      = 'Neue Aufgabe hinzugefügt';
 $lang['mail_changedtask']  = 'Aufgaben-Status geändert';
 
-$lang['view']         = 'Aufgaben anzeigen:';
-$lang['view_all']     = 'alle';
-$lang['view_open']    = 'offene';
-$lang['view_my']      = 'meine';
-$lang['view_new']     = 'neue';
-$lang['view_done']    = 'erledigte';
-$lang['view_due']     = 'fällige';
-$lang['view_overdue'] = 'verspätete';
+$lang['view']          = 'Aufgaben anzeigen:';
+$lang['view_all']      = 'alle';
+$lang['view_open']     = 'offene';
+$lang['view_my']       = 'meine';
+$lang['view_new']      = 'neue';
+$lang['view_done']     = 'erledigte';
+$lang['view_due']      = 'fällige';
+$lang['view_overdue']  = 'verspätete';
+$lang['view_user']     = 'Nur meine Tasks';
+$lang['view_rejected'] = 'abgelehnt';
+$lang['view_accepted'] = 'übernommen';
+$lang['view_started']  = 'begonnen';
+$lang['view_verified'] = 'überprüft';
 
 $lang['btn_change']   = 'Ändern';
 $lang['btn_refresh']  = 'Aktualisieren';

@@ -195,7 +195,7 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
     */
     function _viewFilters() {
         if (!$_SERVER['REMOTE_USER']) $filters = array('all', 'open', 'done');
-        else $filters = array('all', 'open', 'new', 'done', 'my');
+        else $filters = array('all', 'open', 'new', 'done', 'my', 'rejected', 'started', 'accepted', 'verified');
         if ($this->getConf('datefield')) {
             $filters[] = 'due';
             $filters[] = 'overdue';

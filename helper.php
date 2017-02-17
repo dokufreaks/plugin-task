@@ -104,11 +104,27 @@ class helper_plugin_task extends DokuWiki_Plugin {
             $date = $task['date']['due'];
             $responsible = $this->_isResponsible($task['user']);
 
-            // skip closed tasks unless filter is 'all'
+            // Check status in detail if filter is not 'all'
             if ($filter != 'all') {
-                if (($task['status'] < 0) || ($task['status'] > 3)) continue;
-                // skip done tasks as well unless filter is 'done'
-                if ($filter != 'done' && $task['status'] == 3) continue;
+                if ($filter == 'rejected') {
+                    // Only show 'rejected'
+                    if ($task['status'] != -1) continue;
+                } else if ($filter == 'accepted') {
+                    // Only show 'accepted' and 'started'
+                    if ($task['status'] != 1 && $task['status'] != 2) continue;
+                } else if ($filter == 'started') {
+                    // Only show 'started'
+                    if ($task['status'] != 2) continue;
+                } else if ($filter == 'done') {
+                    // Only show 'done'
+                    if ($task['status'] != 3) continue;
+                } else if ($filter == 'verified') {
+                    // Only show 'verified'
+                    if ($task['status'] != 4) continue;
+                } else {
+                    // No pure status filter, skip done and closed tasks
+                    if (($task['status'] < 0) || ($task['status'] > 2)) continue;
+                }
             }
 
             // skip other's tasks if filter is 'my'
@@ -116,9 +132,6 @@ class helper_plugin_task extends DokuWiki_Plugin {
 
             // skip assigned and not new tasks if filter is 'new'
             if (($filter == 'new') && ($task['user']['name'] || ($task['status'] != 0))) continue;
-
-            // skip not done and my tasks if filter is 'done'
-            if (($filter == 'done') && ($task['status'] != 3)) continue;
 
             // filter is 'due' or 'overdue' 
             if (in_array($filter, array('due', 'overdue'))) {
