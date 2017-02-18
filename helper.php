@@ -87,16 +87,13 @@ class helper_plugin_task extends DokuWiki_Plugin {
         // returns the list of pages in the given namespace and it's subspaces
         $items = array();
         $opts = array();
-        search($items, $dir, 'search_allpages', $opts);
+        $ns = utf8_encodeFN(str_replace(':', '/', $ns));
+        search($items, $conf['datadir'], 'search_allpages', $opts, $ns);
 
         // add pages with comments to result
         $result = array();
         foreach ($items as $item) {
-            $id   = ($ns ? $ns.':' : '').$item['id'];
-
-            // skip if no permission
-            $perm = auth_quickaclcheck($id);
-            if ($perm < AUTH_READ) continue;
+            $id = $item['id'];
 
             // skip pages without task
             if (!$task = $this->readTask($id)) continue;
