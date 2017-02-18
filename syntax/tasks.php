@@ -16,6 +16,14 @@ if (!defined('DOKU_PLUGIN')) define('DOKU_PLUGIN',DOKU_INC.'lib/plugins/');
 require_once(DOKU_PLUGIN.'syntax.php');
 
 class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
+    protected $helper = NULL;
+
+    /**
+     * Constructor. Loads helper plugin.
+     */
+    public function __construct() {
+        $this->helper = plugin_load('helper', 'task');
+    }
 
     function getType() { return 'substition'; }
     function getPType() { return 'block'; }
@@ -55,7 +63,7 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
         if (!in_array($filter, $filters)) $filter = 'open';
         if(isset($_REQUEST['view_user'])) $user = $_REQUEST['view_user'];
 
-        if ($this->helper =& plugin_load('helper', 'task')) $pages = $this->helper->getTasks($ns, NULL, $filter, $user);
+        if ($this->helper) $pages = $this->helper->getTasks($ns, NULL, $filter, $user);
 
         // use tag refinements?
         if ($refine) {
@@ -72,7 +80,7 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
             if($select) $renderer->doc .= $this->_viewMenu($filter);
             if(auth_quickaclcheck($ns.':*') >= AUTH_CREATE) {
                 if(!in_array('noform', $flags)) {
-                    $renderer->doc .= $this->_newTaskForm($ns);
+                    if ($this->helper) $renderer->doc .= $this->helper->_newTaskForm($ns);
                 }
             }
             return true; // nothing to display
@@ -98,7 +106,7 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
             $perm_create = (auth_quickaclcheck($ns.':*') >= AUTH_CREATE);
             if($perm_create && ($this->getConf('tasks_formposition') == 'top')) {
                 if(!in_array('noform', $flags)) {
-                    $renderer->doc .= $this->_newTaskForm($ns);
+                    if ($this->helper) $renderer->doc .= $this->helper->_newTaskForm($ns);
                 }
             }
 
@@ -135,7 +143,7 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
             // show form to create a new task?
             if($perm_create && ($this->getConf('tasks_formposition') == 'bottom')) {
                 if(!in_array('noform', $flags)) {
-                    $renderer->doc .= $this->_newTaskForm($ns);
+                    if ($this->helper) $renderer->doc .= $this->helper->_newTaskForm($ns);
                 }
             }
 
@@ -233,48 +241,6 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
         return '<div class="centeralign">'.DOKU_LF.
             DOKU_TAB.join(' | ', $ret).DOKU_LF.
             '</div>'.DOKU_LF;
-    }
-    
-    /**
-     * Show the form to start a new discussion thread
-     * 
-     * FIXME use DokuWikis inc/form.php for this?
-     */
-    function _newTaskForm($ns) {
-        global $ID, $lang, $INFO;
-
-        $ret = '<div class="newtask_form">'.DOKU_LF.
-            '<form id="task__newtask_form"  method="post" action="'.script().'" accept-charset="'.$lang['encoding'].'">'.DOKU_LF.
-            DOKU_TAB.'<fieldset>'.DOKU_LF.
-            DOKU_TAB.DOKU_TAB.'<legend> '.$this->getLang('newtask').': </legend>'.DOKU_LF.
-            DOKU_TAB.DOKU_TAB.'<input type="hidden" name="id" value="'.$ID.'" />'.DOKU_LF.
-            DOKU_TAB.DOKU_TAB.'<input type="hidden" name="do" value="newtask" />'.DOKU_LF.
-            DOKU_TAB.DOKU_TAB.'<input type="hidden" name="ns" value="'.$ns.'" />'.DOKU_LF.
-            DOKU_TAB.DOKU_TAB.'<input class="edit" type="text" name="title" id="task__newtask_title" size="40" tabindex="1" />'.DOKU_LF.
-            '<table class="blind">'.DOKU_LF.
-            DOKU_TAB.'<tr>'.DOKU_LF.
-            DOKU_TAB.DOKU_TAB.'<th>'.$this->getLang('user').':</th><td><input type="text" name="user" value="'.hsc($INFO['userinfo']['name']).'" class="edit" tabindex="2" /></td>'.DOKU_LF.
-            DOKU_TAB.'</tr>'.DOKU_LF;
-        if ($this->getConf('datefield')) { // field for due date
-            $ret .= DOKU_TAB.'<tr>'.DOKU_LF.
-                DOKU_TAB.DOKU_TAB.'<th>'.$this->getLang('date').':</th><td><input type="text" name="date" value="'.date('Y-m-d').'" class="edit" tabindex="3" /></td>'.DOKU_LF.
-                DOKU_TAB.'</tr>'.DOKU_LF;
-        }
-        $ret .= DOKU_TAB.DOKU_TAB.'<th>'.$this->getLang('priority').':</th><td>'.DOKU_LF.
-            DOKU_TAB.DOKU_TAB.DOKU_TAB.'<select name="priority" size="1" tabindex="4" class="edit">'.DOKU_LF.
-            DOKU_TAB.DOKU_TAB.DOKU_TAB.DOKU_TAB.'<option value="" selected="selected">'.$this->getLang('low').'</option>'.DOKU_LF.
-            DOKU_TAB.DOKU_TAB.DOKU_TAB.DOKU_TAB.'<option value="!">'.$this->getLang('medium').'</option>'.DOKU_LF.
-            DOKU_TAB.DOKU_TAB.DOKU_TAB.DOKU_TAB.'<option value="!!">'.$this->getLang('high').'</option>'.DOKU_LF.
-            DOKU_TAB.DOKU_TAB.DOKU_TAB.DOKU_TAB.'<option value="!!!">'.$this->getLang('critical').'</option>'.DOKU_LF.
-            DOKU_TAB.DOKU_TAB.DOKU_TAB.'</select>'.DOKU_LF.
-            DOKU_TAB.DOKU_TAB.'</td>'.DOKU_LF.
-            DOKU_TAB.'</tr>'.DOKU_LF.
-            '</table>'.DOKU_LF.
-            DOKU_TAB.DOKU_TAB.'<input class="button" type="submit" value="'.$lang['btn_create'].'" tabindex="5" />'.DOKU_LF.
-            DOKU_TAB.'</fieldset>'.DOKU_LF.
-            '</form>'.DOKU_LF.
-            '</div>'.DOKU_LF;
-        return $ret;
     }
 }
 // vim:et:ts=4:sw=4:enc=utf-8:

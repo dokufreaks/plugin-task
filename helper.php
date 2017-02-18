@@ -429,5 +429,47 @@ class helper_plugin_task extends DokuWiki_Plugin {
         if (auth_aclcheck($id, '', $USERINFO['grps'])) return 'PUBLIC';
         else return 'PRIVATE';
     }
+
+    /**
+     * Show the form to start a new discussion thread
+     * 
+     * FIXME use DokuWikis inc/form.php for this?
+     */
+    function _newTaskForm($ns) {
+        global $ID, $lang, $INFO;
+
+        $ret = '<div class="newtask_form">'.DOKU_LF.
+            '<form id="task__newtask_form"  method="post" action="'.script().'" accept-charset="'.$lang['encoding'].'">'.DOKU_LF.
+            DOKU_TAB.'<fieldset>'.DOKU_LF.
+            DOKU_TAB.DOKU_TAB.'<legend> '.$this->getLang('newtask').': </legend>'.DOKU_LF.
+            DOKU_TAB.DOKU_TAB.'<input type="hidden" name="id" value="'.$ID.'" />'.DOKU_LF.
+            DOKU_TAB.DOKU_TAB.'<input type="hidden" name="do" value="newtask" />'.DOKU_LF.
+            DOKU_TAB.DOKU_TAB.'<input type="hidden" name="ns" value="'.$ns.'" />'.DOKU_LF.
+            DOKU_TAB.DOKU_TAB.'<input class="edit" type="text" name="title" id="task__newtask_title" size="40" tabindex="1" />'.DOKU_LF.
+            '<table class="blind">'.DOKU_LF.
+            DOKU_TAB.'<tr>'.DOKU_LF.
+            DOKU_TAB.DOKU_TAB.'<th>'.$this->getLang('user').':</th><td><input type="text" name="user" value="'.hsc($INFO['userinfo']['name']).'" class="edit" tabindex="2" /></td>'.DOKU_LF.
+            DOKU_TAB.'</tr>'.DOKU_LF;
+        if ($this->getConf('datefield')) { // field for due date
+            $ret .= DOKU_TAB.'<tr>'.DOKU_LF.
+                DOKU_TAB.DOKU_TAB.'<th>'.$this->getLang('date').':</th><td><input type="text" name="date" value="'.date('Y-m-d').'" class="edit" tabindex="3" /></td>'.DOKU_LF.
+                DOKU_TAB.'</tr>'.DOKU_LF;
+        }
+        $ret .= DOKU_TAB.DOKU_TAB.'<th>'.$this->getLang('priority').':</th><td>'.DOKU_LF.
+            DOKU_TAB.DOKU_TAB.DOKU_TAB.'<select name="priority" size="1" tabindex="4" class="edit">'.DOKU_LF.
+            DOKU_TAB.DOKU_TAB.DOKU_TAB.DOKU_TAB.'<option value="" selected="selected">'.$this->getLang('low').'</option>'.DOKU_LF.
+            DOKU_TAB.DOKU_TAB.DOKU_TAB.DOKU_TAB.'<option value="!">'.$this->getLang('medium').'</option>'.DOKU_LF.
+            DOKU_TAB.DOKU_TAB.DOKU_TAB.DOKU_TAB.'<option value="!!">'.$this->getLang('high').'</option>'.DOKU_LF.
+            DOKU_TAB.DOKU_TAB.DOKU_TAB.DOKU_TAB.'<option value="!!!">'.$this->getLang('critical').'</option>'.DOKU_LF.
+            DOKU_TAB.DOKU_TAB.DOKU_TAB.'</select>'.DOKU_LF.
+            DOKU_TAB.DOKU_TAB.'</td>'.DOKU_LF.
+            DOKU_TAB.'</tr>'.DOKU_LF.
+            '</table>'.DOKU_LF.
+            DOKU_TAB.DOKU_TAB.'<input class="button" type="submit" value="'.$lang['btn_create'].'" tabindex="5" />'.DOKU_LF.
+            DOKU_TAB.'</fieldset>'.DOKU_LF.
+            '</form>'.DOKU_LF.
+            '</div>'.DOKU_LF;
+        return $ret;
+    }
 }
 // vim:ts=4:sw=4:et:enc=utf-8:
