@@ -31,13 +31,22 @@ class syntax_plugin_task_taskform extends DokuWiki_Syntax_Plugin {
         global $ID;
 
         // strip {{task>form> from start and }} from end
-        $ns = substr($match, 12, -2);
+        $match = substr($match, 12, -2);
+        list($ns, $flags) = explode('&', $match, 2);
+        $flags = explode('&', $flags);
 
         if (($ns == '*') || ($ns == ':')) $ns = '';
         elseif ($ns == '.') $ns = getNS($ID);
         else $ns = cleanID($ns);
 
-        return array($ns);
+        $selectUserGroup = NULL;
+        foreach ($flags as $flag) {
+            if (substr($flag, 0, 16) == 'selectUserGroup=') {
+                $selectUserGroup = substr($flag, 16);
+                $selectUserGroup = trim($selectUserGroup, '"');
+            }
+        }
+        return array($ns, $flags, $selectUserGroup);
     }
 
     function render($mode, Doku_Renderer $renderer, $data) {
@@ -45,8 +54,10 @@ class syntax_plugin_task_taskform extends DokuWiki_Syntax_Plugin {
             false;
         }
 
-        $ns = $data[0];
-        if ($this->helper) $renderer->doc .= $this->helper->_newTaskForm($ns);
+        list($ns, $flags, $selectUserGroup) = $data;
+
+        $selectUser = in_array('selectUser', $flags);
+        if ($this->helper) $renderer->doc .= $this->helper->_newTaskForm($ns, $selectUser, $selectUserGroup);
         return true;
     }
 }

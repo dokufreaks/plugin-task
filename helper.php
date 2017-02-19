@@ -428,12 +428,20 @@ class helper_plugin_task extends DokuWiki_Plugin {
     }
 
     /**
-     * Show the form to start a new discussion thread
+     * Show the form to start a new discussion thread.
+     * 
+     * @param string $ns              The DokuWiki namespace in which the new task
+     *                                page shall be created
+     * @param bool   $selectUser      If false then create a simple input line for the user field.
+     *                                If true then create a drop down list.
+     * @param bool   $selectUserGroup If not NULL and if $selectUser==true then the drop down list
+     *                                for the user field will only show users who are members of
+     *                                the user group given in $selectUserGroup.
      * 
      * FIXME use DokuWikis inc/form.php for this?
      */
-    function _newTaskForm($ns) {
-        global $ID, $lang, $INFO;
+    function _newTaskForm($ns, $selectUser=false, $selectUserGroup=NULL) {
+        global $ID, $lang, $INFO, $auth;
 
         $ret = '<div class="newtask_form">'.DOKU_LF.
             '<form id="task__newtask_form"  method="post" action="'.script().'" accept-charset="'.$lang['encoding'].'">'.DOKU_LF.
@@ -444,9 +452,25 @@ class helper_plugin_task extends DokuWiki_Plugin {
             DOKU_TAB.DOKU_TAB.'<input type="hidden" name="ns" value="'.$ns.'" />'.DOKU_LF.
             DOKU_TAB.DOKU_TAB.'<input class="edit" type="text" name="title" id="task__newtask_title" size="40" tabindex="1" />'.DOKU_LF.
             '<table class="blind">'.DOKU_LF.
-            DOKU_TAB.'<tr>'.DOKU_LF.
-            DOKU_TAB.DOKU_TAB.'<th>'.$this->getLang('user').':</th><td><input type="text" name="user" value="'.hsc($INFO['userinfo']['name']).'" class="edit" tabindex="2" /></td>'.DOKU_LF.
-            DOKU_TAB.'</tr>'.DOKU_LF;
+            DOKU_TAB.'<tr>'.DOKU_LF;
+
+            if(!$selectUser) {
+                // Old way input field
+                $ret .= DOKU_TAB.DOKU_TAB.'<th>'.$this->getLang('user').':</th><td>;
+                        <input type="text" name="user" value="'.hsc($INFO['userinfo']['name']).'" class="edit" tabindex="2" /></td>'.DOKU_LF;
+            } else {
+                // Select user from drop down list
+                $ret .= DOKU_TAB.DOKU_TAB.'<th>'.$this->getLang('user').':</th><td><select name="user">'.DOKU_LF;
+ 
+                $filter = array();
+                $filter['grps'] = $selectUserGroup;
+                foreach ($auth->retrieveUsers(0, 0, $filter) as $curr_user) {
+                    $ret .= DOKU_TAB.DOKU_TAB.DOKU_TAB.'<option' . ($curr_user['name'] == $INFO['userinfo']['name'] ? ' selected="selected"' : '') . '>' . $curr_user['name'] . '</option>'.DOKU_LF;
+                }
+                $ret .= DOKU_TAB.DOKU_TAB.'</select></td>'.DOKU_LF;
+            }
+
+            $ret .= DOKU_TAB.'</tr>'.DOKU_LF;
         if ($this->getConf('datefield')) { // field for due date
             $ret .= DOKU_TAB.'<tr>'.DOKU_LF.
                 DOKU_TAB.DOKU_TAB.'<th>'.$this->getLang('date').':</th><td><input type="text" name="date" value="'.date('Y-m-d').'" class="edit" tabindex="3" /></td>'.DOKU_LF.
