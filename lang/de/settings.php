@@ -14,4 +14,6 @@ $lang['tasks_formposition_o_none']   = 'gar nicht';
 $lang['tasks_formposition_o_top']    = 'oben';
 $lang['tasks_formposition_o_bottom'] = 'unten';
 
+$lang['layout']                      = 'Welches Layout/Farben sollen benutzt werden?';
+
 //Setup VIM: ex: et ts=2 enc=utf-8 :

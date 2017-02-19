@@ -59,6 +59,10 @@ div.dokuwiki tr.priority1 { background-color: #fff7e8; }
 div.dokuwiki tr.priority2 { background-color: #fff1d9; }
 div.dokuwiki tr.priority3 { background-color: #ffe9c2; }
 
+div.dokuwiki tr.template_priority1 { background-color: __plugin_task_priority1_color__; }
+div.dokuwiki tr.template_priority2 { background-color: __plugin_task_priority2_color__; }
+div.dokuwiki tr.template_priority3 { background-color: __plugin_task_priority3_color__; }
+
 div.dokuwiki div.vcalendar fieldset.due { border: 1px solid #ffa200; }
 div.dokuwiki div.vcalendar fieldset.overdue { border: 1px solid #ff0040; }
 
