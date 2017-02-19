@@ -7,9 +7,6 @@
 // must be run within Dokuwiki
 if (!defined('DOKU_INC')) die();
 
-if (!defined('DOKU_LF')) define('DOKU_LF', "\n");
-if (!defined('DOKU_TAB')) define('DOKU_TAB', "\t");
-
 class helper_plugin_task extends DokuWiki_Plugin {
   
     function getMethods() {
