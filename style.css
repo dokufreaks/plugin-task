@@ -42,6 +42,10 @@ div.dokuwiki div.vcalendar table.blind th {
   background-color: transparent;
 }
 
+div.dokuwiki div.page table.plugin_task_tasklist {
+  width: __plugin_task_tasklist_width__;
+}
+
 div.dokuwiki div.newtask_form table.blind td,
 div.dokuwiki div.vcalendar table.blind td {
   width: 50%;
