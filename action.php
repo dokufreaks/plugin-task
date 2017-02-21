@@ -149,16 +149,32 @@ class action_plugin_task extends DokuWiki_Action_Plugin {
 
         $status = $_REQUEST['status'];
         $status = trim($status);
-        if (!is_numeric($status) || ($status < -1) || ($status > 4)) return 'show'; // invalid
+        if (!is_numeric($status) || ($status < -1) || ($status > 4)) {
+            if ($this->getConf('show_error_msg')) {
+                $message = $this->getLang('msg_rcvd_invalid_status');
+                $message = str_replace('%status%', $status, $message);
+                msg($message, -1);
+            }
+            return 'show';
+        }
 
         // load task data
         if ($my =& plugin_load('helper', 'task')) {
             $task = $my->readTask($ID);
         } else {
+            if ($this->getConf('show_error_msg')) {
+                msg($this->getLang('msg_load_helper_failed'), -1);
+            }
             return 'show';
         }
 
-        if ($task['status'] == $status) return 'show'; // unchanged
+        if ($task['status'] == $status) {
+            // unchanged
+            if ($this->getConf('show_info_msg')) {
+                msg($this->getLang('msg_nothing_changed'));
+            }
+            return 'show';
+        }
 
         $responsible = $my->_isResponsible($task['user']['name']);
 
@@ -167,16 +183,32 @@ class action_plugin_task extends DokuWiki_Action_Plugin {
         if ($INFO['perm'] != AUTH_ADMIN) {
 
             // responsible person can't verify her / his own tasks
-            if ($responsible && ($status == 4)) return 'show';
+            if ($responsible && ($status == 4)) {
+                if ($this->getConf('show_info_msg')) {
+                    msg ($this->getLang('msg_responsible_no_verify'));
+                }
+                return 'show';
+            }
 
             // other persons can only accept or verify tasks
-            if (!$responsible && $status != 1 && $status != 4) return 'show';
+            if (!$responsible && $status != 1 && $status != 4) {
+                if ($this->getConf('show_info_msg')) {
+                    msg ($this->getLang('msg_other_accept_or_verify'));
+                }
+                return 'show';
+            }
         }
 
         // assign task to a user
         if (!$task['user']['name']) {
             // FIXME error message?
-            if (!$_SERVER['REMOTE_USER']) return 'show'; // no logged in user
+            if (!$_SERVER['REMOTE_USER']) {
+                // no logged in user
+                if ($this->getConf('show_info_msg')) {
+                    msg($this->getLang('msg_not_logged_in'));
+                }
+                return 'show';
+            }
 
             $wiki = rawWiki($ID);
             $summary = $this->getLang('mail_changedtask').': '.$this->getLang('accepted');
@@ -194,9 +226,18 @@ class action_plugin_task extends DokuWiki_Action_Plugin {
         }
 
         // save .task meta file and clear xhtml cache
+        $oldstatus = $task['status'];
         $task['status'] = $status;
         $my->writeTask($ID, $task);
         $_REQUEST['purge'] = true;
+
+        if ($this->getConf('show_success_msg')) {
+            $message = $this->getLang('msg_status_changed');
+            $message = str_replace('%status%', $my->statusLabel($status), $message);
+            $message = str_replace('%oldstatus%', $my->statusLabel($oldstatus), $message);
+            msg($message, 1);
+        }
+
         return 'show';
     }
 }

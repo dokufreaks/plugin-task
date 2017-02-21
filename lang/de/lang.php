@@ -47,4 +47,12 @@ $lang['view_verified'] = 'überprüft';
 $lang['btn_change']   = 'Ändern';
 $lang['btn_refresh']  = 'Aktualisieren';
 
+$lang['msg_rcvd_invalid_status']    = 'Plugin Task: Es wurde ein ungültiger Wert für "status" empfangen. Der Wert ist "%status%".';
+$lang['msg_load_helper_failed']     = 'Plugin Task: Helper class konnte nicht geladen werden!';
+$lang['msg_nothing_changed']        = 'Plugin Task: "status" ist unverändert.';
+$lang['msg_responsible_no_verify']  = 'Plugin Task: Die verantwortliche Person kann ihre eigenen Tasks NICHT überprüfen!';
+$lang['msg_other_accept_or_verify'] = 'Plugin Task: Andere Personen können Tasks nur akzeptieren oder überprüfen!';
+$lang['msg_not_logged_in']          = 'Plugin Task: Sie müssen eingeloggt sein um den Status zu ändern!';
+$lang['msg_status_changed']         = 'Plugin Task: "status" wurde geändert von "%oldstatus%" auf "%status%".';
+
 //Setup VIM: ex: et ts=2 enc=utf-8 :

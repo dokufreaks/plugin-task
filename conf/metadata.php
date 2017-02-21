@@ -11,5 +11,8 @@ $meta['tasks_formposition'] = array(
                                 '_choices' => array('none', 'top', 'bottom')
                               );
 $meta['tasks_newestfirst']  = array('onoff');
+$meta['show_error_msg']     = array('onoff');
+$meta['show_info_msg']      = array('onoff');
+$meta['show_success_msg']   = array('onoff');
 
 //Setup VIM: ex: et ts=2 enc=utf-8 :

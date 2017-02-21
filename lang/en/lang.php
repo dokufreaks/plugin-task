@@ -47,4 +47,12 @@ $lang['view_verified'] = 'verified';
 $lang['btn_change']   = 'Change';
 $lang['btn_refresh']  = 'Refresh';
 
+$lang['msg_rcvd_invalid_status']    = 'Plugin Task: Received invalid value for "status". Value is "%status%".';
+$lang['msg_load_helper_failed']     = 'Plugin Task: Failed loading helper class!';
+$lang['msg_nothing_changed']        = 'Plugin Task: no change for "status".';
+$lang['msg_responsible_no_verify']  = 'Plugin Task: the responsible person cannot verify her / his own tasks!';
+$lang['msg_other_accept_or_verify'] = 'Plugin Task: other persons can only accept or verify tasks!';
+$lang['msg_not_logged_in']          = 'Plugin Task: you need to be logged in to change the status!';
+$lang['msg_status_changed']         = 'Plugin Task: "status" has been changed from "%oldstatus%" to "%status%".';
+
 //Setup VIM: ex: et ts=2 enc=utf-8 :

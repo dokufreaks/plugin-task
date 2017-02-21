@@ -16,4 +16,8 @@ $lang['tasks_formposition_o_bottom'] = 'bottom';
 
 $lang['tasks_newewstfirst']          = 'show newewst tasks first in tasks list';
 
+$lang['show_error_msg']              = 'show error messages';
+$lang['show_info_msg']               = 'show info messages';
+$lang['show_success_msg']            = 'show success messages';
+
 //Setup VIM: ex: et ts=2 enc=utf-8 :
