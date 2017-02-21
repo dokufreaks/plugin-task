@@ -148,6 +148,7 @@ class action_plugin_task extends DokuWiki_Action_Plugin {
         global $INFO;
 
         $status = $_REQUEST['status'];
+        $status = trim($status);
         if (!is_numeric($status) || ($status < -1) || ($status > 4)) return 'show'; // invalid
 
         // load task data

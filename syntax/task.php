@@ -183,28 +183,83 @@ class syntax_plugin_task_task extends DokuWiki_Syntax_Plugin {
     }
 
     /**
-     * Returns the XHTML for the status popup menu
+     * Returns the XHTML for the status drop down list.
+     * Just forwards call to the old or new function.
      */
     function _statusMenu($options, $status) {
+        if (!class_exists('dokuwiki\Form\Form')) {
+            return $this->_statusMenuNew($options, $status);
+        } else {
+            return $this->_statusMenuOld($options, $status);
+        }
+    }
+
+    /**
+     * Returns the XHTML for the status popup menu.
+     * This is the new version using class dokuwiki\Form\Form.
+     * 
+     * @see _statusMenu
+     */
+    function _statusMenuNew($options, $status) {
+        global $ID, $lang;
+
+        $form = new dokuwiki\Form\Form(array('id' => 'task__changetask_form'));
+        $pos = 1;
+
+        $form->addHTML('<div class="no">', $pos++);
+
+        // Set hidden fields
+        $form->setHiddenField ('id', $ID);
+        $form->setHiddenField ('do', 'changetask');
+
+        // Select status from drop down list
+        $dropDownOptions = array();
+        $selected = NULL;
+        $value = 0;
+        foreach ($options as $option) {
+            if ($status == $option) {
+                $selected = $option.' ';
+            }
+            $dropDownOptions [$option.' '] = $this->my->statusLabel($option);
+        }
+        $input = $form->addDropdown('status', $dropDownOptions, NULL, $pos++);
+        $input->val($selected);
+
+        // Add button
+        $form->addButton(NULL, $this->getLang('btn_change'), $pos++);
+
+        $form->addHTML('</div></form>'.DOKU_LF, $pos++);
+
+        return $form->toHTML();
+    }
+
+    /**
+     * Returns the XHTML for the status popup menu.
+     * Old function generating all HTML on its own.
+     * 
+     * @see _statusMenu
+     */
+    function _statusMenuOld($options, $status) {
         global $ID;
         global $lang;
 
-        $ret = '<form id="task__changetask_form" method="post" action="'.script().'" accept-charset="'.$lang['encoding'].'">'.DOKU_LF.
-            '<div class="no">'.DOKU_LF.
-            DOKU_TAB.'<input type="hidden" name="id" value="'.$ID.'" />'.DOKU_LF.
-            DOKU_TAB.'<input type="hidden" name="do" value="changetask" />'.DOKU_LF.
-            DOKU_TAB.'<select name="status" size="1" class="edit">'.DOKU_LF;
+        $ret  = '<form id="task__changetask_form" method="post" action="'.script().'" accept-charset="'.$lang['encoding'].'">';
+        $ret .= '<div class="no">';
+        $ret .= '<input type="hidden" name="id" value="'.$ID.'" />';
+        $ret .= '<input type="hidden" name="do" value="changetask" />';
+        $ret .= '<select name="status" size="1" class="edit">';
 
         foreach ($options as $option) {
-            $ret .= DOKU_TAB.DOKU_TAB.'<option value="'.$option.'"';
+            $ret .= '<option value="'.$option.'"';
             if ($status == $option) $ret .= ' selected="selected"';
-            $ret .= '>'.$this->my->statusLabel($option).'</option>'.DOKU_LF;
+            $ret .= '>'.$this->my->statusLabel($option).'</option>';
         }
 
-        $ret .= DOKU_TAB.'</select>'.DOKU_LF.
-            DOKU_TAB.'<input class="button" type="submit" value="'.$this->getLang('btn_change').'" />'.DOKU_LF.
-            '</div>'.DOKU_LF.
-            '</form>';
+        $ret .= '</select>';
+        $ret .= '<input class="button" type="submit" value="'.$this->getLang('btn_change').'" />';
+        $ret .= '</div>';
+        $ret .= '</form>'.DOKU_LF;
+
         return $ret;
     }
 
