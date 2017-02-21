@@ -428,7 +428,8 @@ class helper_plugin_task extends DokuWiki_Plugin {
     }
 
     /**
-     * Show the form to start a new discussion thread.
+     * Show the form to create a new task.
+     * The function just forwards the call to the old or new function.
      * 
      * @param string $ns              The DokuWiki namespace in which the new task
      *                                page shall be created
@@ -437,59 +438,148 @@ class helper_plugin_task extends DokuWiki_Plugin {
      * @param bool   $selectUserGroup If not NULL and if $selectUser==true then the drop down list
      *                                for the user field will only show users who are members of
      *                                the user group given in $selectUserGroup.
-     * 
-     * FIXME use DokuWikis inc/form.php for this?
      */
     function _newTaskForm($ns, $selectUser=false, $selectUserGroup=NULL) {
+        if (class_exists('dokuwiki\Form\Form')) {
+            return $this->_newTaskFormNew($ns, $selectUser, $selectUserGroup);
+        } else {
+            return $this->_newTaskFormOld($ns, $selectUser, $selectUserGroup);
+        }
+    }
+
+    /**
+     * Show the form to create a new task.
+     * This is the new version using class dokuwiki\Form\Form.
+     * 
+     * @see _newTaskForm
+     */
+    protected function _newTaskFormNew($ns, $selectUser=false, $selectUserGroup=NULL) {
         global $ID, $lang, $INFO, $auth;
 
-        $ret = '<div class="newtask_form">'.DOKU_LF.
-            '<form id="task__newtask_form"  method="post" action="'.script().'" accept-charset="'.$lang['encoding'].'">'.DOKU_LF.
-            DOKU_TAB.'<fieldset>'.DOKU_LF.
-            DOKU_TAB.DOKU_TAB.'<legend> '.$this->getLang('newtask').': </legend>'.DOKU_LF.
-            DOKU_TAB.DOKU_TAB.'<input type="hidden" name="id" value="'.$ID.'" />'.DOKU_LF.
-            DOKU_TAB.DOKU_TAB.'<input type="hidden" name="do" value="newtask" />'.DOKU_LF.
-            DOKU_TAB.DOKU_TAB.'<input type="hidden" name="ns" value="'.$ns.'" />'.DOKU_LF.
-            DOKU_TAB.DOKU_TAB.'<input class="edit" type="text" name="title" id="task__newtask_title" size="40" tabindex="1" />'.DOKU_LF.
-            '<table class="blind">'.DOKU_LF.
-            DOKU_TAB.'<tr>'.DOKU_LF;
+        $form = new dokuwiki\Form\Form(array('id' => 'task__newtask_form'));
+        $pos = 1;
 
-            if(!$selectUser) {
-                // Old way input field
-                $ret .= DOKU_TAB.DOKU_TAB.'<th>'.$this->getLang('user').':</th><td>;
-                        <input type="text" name="user" value="'.hsc($INFO['userinfo']['name']).'" class="edit" tabindex="2" /></td>'.DOKU_LF;
-            } else {
-                // Select user from drop down list
-                $ret .= DOKU_TAB.DOKU_TAB.'<th>'.$this->getLang('user').':</th><td><select name="user">'.DOKU_LF;
- 
-                $filter = array();
-                $filter['grps'] = $selectUserGroup;
-                foreach ($auth->retrieveUsers(0, 0, $filter) as $curr_user) {
-                    $ret .= DOKU_TAB.DOKU_TAB.DOKU_TAB.'<option' . ($curr_user['name'] == $INFO['userinfo']['name'] ? ' selected="selected"' : '') . '>' . $curr_user['name'] . '</option>'.DOKU_LF;
-                }
-                $ret .= DOKU_TAB.DOKU_TAB.'</select></td>'.DOKU_LF;
+        // Open fieldset
+        $form->addFieldsetOpen($this->getLang('newtask'), $pos++);
+
+        // Set hidden fields
+        $form->setHiddenField ('id', $ID);
+        $form->setHiddenField ('do', 'newtask');
+        $form->setHiddenField ('ns', $ns);
+
+        // Set input filed for task title
+        $input = $form->addTextInput('title', NULL, $pos++);
+        $input->attr('id', 'task__newtask_title');
+        $input->attr('size', '40');
+
+        // Set input field for user (either text field or drop down box)
+        $form->addHTML('<table class="blind"><tr><th>'.$this->getLang('user').':</th><td>', $pos++);
+        if(!$selectUser) {
+            // Old way input field
+            $input = $form->addTextInput('user', NULL, $pos++);
+            $input->attr('value', hsc($INFO['userinfo']['name']));
+        } else {
+            // Select user from drop down list
+            $filter = array();
+            $filter['grps'] = $selectUserGroup;
+            $options = array();
+            foreach ($auth->retrieveUsers(0, 0, $filter) as $curr_user) {
+                $options [] = $curr_user['name'];
             }
-
-            $ret .= DOKU_TAB.'</tr>'.DOKU_LF;
-        if ($this->getConf('datefield')) { // field for due date
-            $ret .= DOKU_TAB.'<tr>'.DOKU_LF.
-                DOKU_TAB.DOKU_TAB.'<th>'.$this->getLang('date').':</th><td><input type="text" name="date" value="'.date('Y-m-d').'" class="edit" tabindex="3" /></td>'.DOKU_LF.
-                DOKU_TAB.'</tr>'.DOKU_LF;
+            $input = $form->addDropdown('user', $options, NULL, $pos++);
+            $input->val($INFO['userinfo']['name']);
         }
-        $ret .= DOKU_TAB.DOKU_TAB.'<th>'.$this->getLang('priority').':</th><td>'.DOKU_LF.
-            DOKU_TAB.DOKU_TAB.DOKU_TAB.'<select name="priority" size="1" tabindex="4" class="edit">'.DOKU_LF.
-            DOKU_TAB.DOKU_TAB.DOKU_TAB.DOKU_TAB.'<option value="" selected="selected">'.$this->getLang('low').'</option>'.DOKU_LF.
-            DOKU_TAB.DOKU_TAB.DOKU_TAB.DOKU_TAB.'<option value="!">'.$this->getLang('medium').'</option>'.DOKU_LF.
-            DOKU_TAB.DOKU_TAB.DOKU_TAB.DOKU_TAB.'<option value="!!">'.$this->getLang('high').'</option>'.DOKU_LF.
-            DOKU_TAB.DOKU_TAB.DOKU_TAB.DOKU_TAB.'<option value="!!!">'.$this->getLang('critical').'</option>'.DOKU_LF.
-            DOKU_TAB.DOKU_TAB.DOKU_TAB.'</select>'.DOKU_LF.
-            DOKU_TAB.DOKU_TAB.'</td>'.DOKU_LF.
-            DOKU_TAB.'</tr>'.DOKU_LF.
-            '</table>'.DOKU_LF.
-            DOKU_TAB.DOKU_TAB.'<input class="button" type="submit" value="'.$lang['btn_create'].'" tabindex="5" />'.DOKU_LF.
-            DOKU_TAB.'</fieldset>'.DOKU_LF.
-            '</form>'.DOKU_LF.
-            '</div>'.DOKU_LF;
+        $form->addHTML('</td></tr>', $pos++);
+
+        // Field for due date
+        if ($this->getConf('datefield')) {
+            $form->addHTML('<tr><th>'.$this->getLang('date').':</th><td>', $pos++);
+            $input = $form->addTextInput('date', NULL, $pos++);
+            $input->attr('value', date('Y-m-d'));
+            $form->addHTML('</td></tr>', $pos++);
+        }
+
+        // Select priority from drop down list
+        $form->addHTML('<tr><th>'.$this->getLang('priority').':</th><td>');
+        $filter = array();
+        $filter['grps'] = $selectUserGroup;
+        $options = array();
+        $options [] = $this->getLang('low');
+        $options [] = $this->getLang('medium');
+        $options [] = $this->getLang('high');
+        $options [] = $this->getLang('critical');
+        $input = $form->addDropdown('priority', $options, NULL, $pos++);
+        $input->attr('size', '1');
+        $input->val($this->getLang('low'));
+        $form->addHTML('</td></tr>', $pos++);
+
+        $form->addHTML('</table>', $pos++);
+
+        // Add button
+        $form->addButton(NULL, $lang['btn_create'], $pos++);
+
+        // Close fieldset
+        $form->addFieldsetClose($pos++);
+
+        // Generate the HTML-Representation of the form
+        $ret = '<div class="newtask_form">';
+        $ret .= $form->toHTML();
+        $ret .= '</div>';
+
+        return $ret;
+    }
+
+    /**
+     * Show the form to create a new task.
+     * This is the old version, creating all HTML code on its own.
+     * 
+     * @see _newTaskForm
+     */
+    protected function _newTaskFormOld($ns, $selectUser=false, $selectUserGroup=NULL) {
+        global $ID, $lang, $INFO, $auth;
+
+        $ret =  '<div class="newtask_form">';
+        $ret .= '<form id="task__newtask_form"  method="post" action="'.script().'" accept-charset="'.$lang['encoding'].'">';
+        $ret .= '<fieldset>';
+        $ret .= '<legend> '.$this->getLang('newtask').': </legend>';
+        $ret .= '<input type="hidden" name="id" value="'.$ID.'" />';
+        $ret .= '<input type="hidden" name="do" value="newtask" />';
+        $ret .= '<input type="hidden" name="ns" value="'.$ns.'" />';
+        $ret .= '<input class="edit" type="text" name="title" id="task__newtask_title" size="40" tabindex="1" />';
+        $ret .= '<table class="blind"><tr>';
+
+        if(!$selectUser) {
+            // Old way input field
+            $ret .= '<th>'.$this->getLang('user').':</th>';
+            $ret .= '<td><input type="text" name="user" value="'.hsc($INFO['userinfo']['name']).'" class="edit" tabindex="2" /></td>';
+        } else {
+            // Select user from drop down list
+            $ret .= '<th>'.$this->getLang('user').':</th>';
+            $ret .= '<td><select name="user">';
+
+            $filter = array();
+            $filter['grps'] = $selectUserGroup;
+            foreach ($auth->retrieveUsers(0, 0, $filter) as $curr_user) {
+                $ret .= '<option' . ($curr_user['name'] == $INFO['userinfo']['name'] ? ' selected="selected"' : '') . '>' . $curr_user['name'] . '</option>';
+            }
+            $ret .= '</select></td>';
+        }
+
+        $ret .= '</tr>';
+        if ($this->getConf('datefield')) { // field for due date
+            $ret .= '<tr><th>'.$this->getLang('date').':</th>';
+            $ret .= '<td><input type="text" name="date" value="'.date('Y-m-d').'" class="edit" tabindex="3" /></td></tr>';
+        }
+        $ret .= '<tr><th>'.$this->getLang('priority').':</th><td>';
+        $ret .= '<select name="priority" size="1" tabindex="4" class="edit">';
+        $ret .= '<option value="" selected="selected">'.$this->getLang('low').'</option>';
+        $ret .= '<option value="!">'.$this->getLang('medium').'</option>';
+        $ret .= '<option value="!!">'.$this->getLang('high').'</option>';
+        $ret .= '<option value="!!!">'.$this->getLang('critical').'</option>';
+        $ret .= '</select>';
+        $ret .= '</td></tr></table>';
+        $ret .= '<input class="button" type="submit" value="'.$lang['btn_create'].'" tabindex="5" />';
+        $ret .= '</fieldset></form></div>'.DOKU_LF;
         return $ret;
     }
 }
