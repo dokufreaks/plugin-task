@@ -134,6 +134,13 @@ class helper_plugin_task extends DokuWiki_Plugin {
                 elseif (($date + 86400 > time()) && ($filter == 'overdue')) continue;
             } 
 
+            if ($this->getConf('layout') == 'template') {
+                $class = 'template_priority'.$task['priority'];
+            } else {
+                // let pagelist plugin set the class, will be 'priority'
+                $class = NULL;
+            }
+
             $result[$task['key']] = array(
                     'id'       => $id,
                     'date'     => $date,
@@ -143,6 +150,7 @@ class helper_plugin_task extends DokuWiki_Plugin {
                     'perm'     => $perm,
                     'file'     => $task['file'],
                     'exists'   => true,
+                    'class'    => $class,
                     );
         }
 

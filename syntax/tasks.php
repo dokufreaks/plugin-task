@@ -124,7 +124,11 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
             $pagelist->addColumn('task', 'status');
 
             // output list
-            $pagelist->startList();
+            $class = NULL;
+            if ($this->getConf('layout') == 'template') {
+                $class = 'plugin_task_tasklist';
+            }
+            $pagelist->startList($class);
             if($this->getConf('tasks_newestfirst')) {
                 $pages = array_reverse($pages);
             }

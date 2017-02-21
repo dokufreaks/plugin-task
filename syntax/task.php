@@ -84,7 +84,15 @@ class syntax_plugin_task_task extends DokuWiki_Syntax_Plugin {
             }
 
             $class = ' class="vtodo';
-            if ($priority) $class .= ' priority' . $priority;
+            if ($priority) {
+                if ($this->getConf('layout') == 'template') {
+                    // Take layout from DokuWiki template
+                    $class .= ' template_priority' . $priority;
+                } else {
+                    // Use built-in layout
+                    $class .= ' priority' . $priority;
+                }
+            }
             if ($due) {
                 $class .= ' '.$due;
                 $due = ' class="'.$due.'"';

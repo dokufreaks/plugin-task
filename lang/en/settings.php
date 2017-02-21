@@ -16,4 +16,6 @@ $lang['tasks_formposition_o_bottom'] = 'bottom';
 
 $lang['tasks_newewstfirst']          = 'show newewst tasks first in tasks list';
 
+$lang['layout']                      = 'which layout/colors shall be used?';
+
 //Setup VIM: ex: et ts=2 enc=utf-8 :
