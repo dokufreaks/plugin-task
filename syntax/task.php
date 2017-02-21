@@ -187,7 +187,7 @@ class syntax_plugin_task_task extends DokuWiki_Syntax_Plugin {
      * Just forwards call to the old or new function.
      */
     function _statusMenu($options, $status) {
-        if (!class_exists('dokuwiki\Form\Form')) {
+        if (class_exists('dokuwiki\Form\Form')) {
             return $this->_statusMenuNew($options, $status);
         } else {
             return $this->_statusMenuOld($options, $status);
