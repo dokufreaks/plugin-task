@@ -50,7 +50,7 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
 
         if (!$filter || ($filter == 'select')) {
             $select = true;
-            $filter = $_REQUEST['filter'];
+            $filter = trim($_REQUEST['filter']);
         }
         $filter = strtolower($filter);
         $filters = $this->_viewFilters();
@@ -157,38 +157,111 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
 /* ---------- (X)HTML Output Functions ---------- */
 
     /**
-    * Show a popup to select the task view filter
-    */
+     * Show a popup to select the task view filter.
+     * Just forwards call to the old or new function.
+     */
     function _viewMenu($filter) {
+        if (class_exists('dokuwiki\Form\Form')) {
+            return $this->_viewMenuNew($filter);
+        } else {
+            return $this->_viewMenuOld($filter);
+        }
+    }
+
+    /**
+     * Show a popup to select the task view filter.
+     * This is the new version using class dokuwiki\Form\Form.
+     * 
+     * @see _viewMenu
+     */
+    function _viewMenuNew($filter) {
         global $ID, $lang;
 
         $options = $this->_viewFilters();
 
-        $ret = '<div class="task_viewmenu">'.DOKU_LF.
-            '<form id="task__changeview_form" method="post" action="'.script().'" accept-charset="'.$lang['encoding'].'">'.DOKU_LF.
-            '<label class="simple">'.DOKU_LF.
-            DOKU_TAB.'<span>'.$this->getLang('view').'</span>'.DOKU_LF.
-            DOKU_TAB.'<input type="hidden" name="id" value="'.$ID.'" />'.DOKU_LF.
-            DOKU_TAB.'<input type="hidden" name="do" value="show" />'.DOKU_LF.
-            DOKU_TAB.'<select name="filter" size="1" class="edit">'.DOKU_LF;
+        $form = new dokuwiki\Form\Form(array('id' => 'task__changeview_form'));
+        $pos = 1;
+
+        $form->addHTML('<label class="simple">', $pos++);
+        $form->addHTML('<span>'.$this->getLang('view').'</span>', $pos++);
+
+        // Set hidden fields
+        $form->setHiddenField ('id', $ID);
+        $form->setHiddenField ('do', 'show');
+
+        // Select status from drop down list
+        $dropDownOptions = array();
+        $selected = NULL;
+        $value = 0;
         foreach ($options as $option) {
-            $ret .= DOKU_TAB.DOKU_TAB.'<option value="'.$option.'"';
-            if ($filter == $option) $ret .= ' selected="selected"';
-            $ret .= '>'.$this->getLang('view_'.$option).'</option>'.DOKU_LF;
+            if ($filter == $option) {
+                $selected = $option.' ';
+            }
+            $dropDownOptions [$option.' '] = $this->getLang('view_'.$option);
         }
-        $ret .= DOKU_TAB.'</select>'.DOKU_LF;
-        $ret .= '</label>'.DOKU_LF;
+        $input = $form->addDropdown('filter', $dropDownOptions, NULL, $pos++);
+        $input->val($selected);
+
+        $form->addHTML('</label>', $pos++);
 
         if(isset($_SERVER['REMOTE_USER'])) {
-            $ret .= '<label class="simple">'.DOKU_LF.'<span>'.$this->getLang('view_user').':</span>'.DOKU_LF;
-            $ret .= DOKU_TAB.'<input type="checkbox" name="view_user" value="' . $_SERVER['REMOTE_USER'] . '"';
-            $ret .= ($_REQUEST['view_user']) ? ' checked="checked"' : '';
-            $ret .= '/></label>'.DOKU_LF;
+            $form->addHTML('<label class="simple"><span>'.$this->getLang('view_user').':</span>', $pos++);
+            $input = $form->addCheckbox('view_user', NULL, $pos++);
+            $input->attr('value', $_SERVER['REMOTE_USER']);
+            if ($_REQUEST['view_user']) {
+                $input->attr('checked', 'checked');
+            }
+            $form->addHTML('</label>', $pos++);
         }
 
-        $ret .= DOKU_TAB.'<input class="button" type="submit" value="'.$this->getLang('btn_refresh').'" />'.DOKU_LF.
-            '</form>'.DOKU_LF.
-            '</div>'.DOKU_LF;
+        // Add button
+        $form->addButton(NULL, $this->getLang('btn_refresh'), $pos++);
+
+        $ret  = '<div class="task_viewmenu">';
+        $ret .= $form->toHTML();
+        $ret .= '</div>';
+
+        return $ret;
+    }
+
+    /**
+     * Show a popup to select the task view filter.
+     * Old function generating all HTML on its own.
+     * 
+     * @see _viewMenu
+     */
+    function _viewMenuOld($filter) {
+        global $ID, $lang;
+
+        $options = $this->_viewFilters();
+
+        $ret  = '<div class="task_viewmenu">';
+        $ret .= '<form id="task__changeview_form" method="post" action="'.script().'" accept-charset="'.$lang['encoding'].'">';
+        $ret .= '<label class="simple">';
+        $ret .= '<span>'.$this->getLang('view').'</span>';
+        $ret .= '<input type="hidden" name="id" value="'.$ID.'" />';
+        $ret .= '<input type="hidden" name="do" value="show" />';
+        $ret .= '<select name="filter" size="1" class="edit">';
+
+        foreach ($options as $option) {
+            $ret .= '<option value="'.$option.'"';
+            if ($filter == $option) $ret .= ' selected="selected"';
+            $ret .= '>'.$this->getLang('view_'.$option).'</option>';
+        }
+
+        $ret .= '</select>';
+        $ret .= '</label>';
+
+        if(isset($_SERVER['REMOTE_USER'])) {
+            $ret .= '<label class="simple"><span>'.$this->getLang('view_user').':</span>';
+            $ret .= '<input type="checkbox" name="view_user" value="' . $_SERVER['REMOTE_USER'] . '"';
+            $ret .= ($_REQUEST['view_user']) ? ' checked="checked"' : '';
+            $ret .= '/></label>';
+        }
+
+        $ret .= '<input class="button" type="submit" value="'.$this->getLang('btn_refresh').'" />';
+        $ret .= '</form></div>';
+
         return $ret;
     }
   
