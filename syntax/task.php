@@ -228,7 +228,7 @@ class syntax_plugin_task_task extends DokuWiki_Syntax_Plugin {
         // Add button
         $form->addButton(NULL, $this->getLang('btn_change'), $pos++);
 
-        $form->addHTML('</div></form>'.DOKU_LF, $pos++);
+        $form->addHTML('</div>', $pos++);
 
         return $form->toHTML();
     }
