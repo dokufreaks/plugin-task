@@ -306,7 +306,7 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
             }
         }
         return '<div class="centeralign">'.DOKU_LF.
-            DOKU_TAB.join(' | ', $ret).DOKU_LF.
+            join(' | ', $ret).DOKU_LF.
             '</div>'.DOKU_LF;
     }
 }

@@ -94,7 +94,7 @@ class syntax_plugin_task_task extends DokuWiki_Syntax_Plugin {
           
             // generate output
             $renderer->doc .= '<div class="vcalendar">'.DOKU_LF
-                            . '<fieldset'.$class.'>'.DOKU_LF.DOKU_TAB
+                            . '<fieldset'.$class.'>'.DOKU_LF
                             . '<legend>'.$this->_icsDownload().$this->getLang('task').'</legend>'.DOKU_LF
                             . '<table class="blind">'.DOKU_LF;
 
@@ -135,7 +135,7 @@ class syntax_plugin_task_task extends DokuWiki_Syntax_Plugin {
     function _tablerow($header, $data, &$renderer, $trclass = '', $tdclass = '') {
         if ($tdclass) $tdclass = ' class="'.$tdclass.'"';
 
-        $renderer->doc .= DOKU_TAB.'<tr'.$trclass.'>'.DOKU_LF.DOKU_TAB.DOKU_TAB;
+        $renderer->doc .= '<tr'.$trclass.'>'.DOKU_LF;
         $renderer->tableheader_open(1, '');
         if ($header) $renderer->doc .= hsc($this->getLang($header)).':';
         $renderer->tableheader_close();
