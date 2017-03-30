@@ -504,10 +504,10 @@ class helper_plugin_task extends DokuWiki_Plugin {
         $filter = array();
         $filter['grps'] = $selectUserGroup;
         $options = array();
-        $options [] = $this->getLang('low');
-        $options [] = $this->getLang('medium');
-        $options [] = $this->getLang('high');
-        $options [] = $this->getLang('critical');
+        $options [''] = $this->getLang('low');
+        $options ['!'] = $this->getLang('medium');
+        $options ['!!'] = $this->getLang('high');
+        $options ['!!!'] = $this->getLang('critical');
         $input = $form->addDropdown('priority', $options, NULL, $pos++);
         $input->attr('size', '1');
         $input->val($this->getLang('low'));
