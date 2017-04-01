@@ -74,6 +74,21 @@ class action_plugin_task extends DokuWiki_Action_Plugin {
                 $user     = $_REQUEST['user'];
                 $date     = $_REQUEST['date'];
                 $priority = $_REQUEST['priority'];
+		
+                switch($priority) {
+                    case $this->getLang('low'):
+			$priority = "";
+		        break;
+                    case $this->getLang('medium'):
+	                $priority = "!";
+		        break;
+                    case $this->getLang('high'):
+                        $priority = "!!";
+                        break;
+                    case $this->getLang('critical'):
+                        $priority = "!!!";
+			break;
+                }
 
                 // create wiki page
                 $data = array(
