@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 /**
  * Arquivo de língua portuguesa do Brasil
  *
