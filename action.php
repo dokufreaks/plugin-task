@@ -32,7 +32,6 @@ class action_plugin_task extends DokuWiki_Action_Plugin {
 
         // we can handle it -> prevent others
         $event->stopPropagation();
-        $event->preventDefault();    
 
         switch($event->data) {
             case 'newtask':
