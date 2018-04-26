@@ -2,7 +2,7 @@
 base   task
 author Michael Klier, Gina Haeussge
 email  dokuwiki@chimeric.de
-date   2017-04-01
+date   2018-04-26
 name   Task Plugin
 desc   Brings task management to DokuWiki.
 url    http://www.dokuwiki.org/plugin:task
