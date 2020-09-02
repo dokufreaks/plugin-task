@@ -483,8 +483,10 @@ class helper_plugin_task extends DokuWiki_Plugin {
             $filter = array();
             $filter['grps'] = $selectUserGroup;
             $options = array();
-            foreach ($auth->retrieveUsers(0, 0, $filter) as $curr_user) {
-                $options [] = $curr_user['name'];
+            if ($auth) {
+                foreach ($auth->retrieveUsers(0, 0, $filter) as $curr_user) {
+                    $options [] = $curr_user['name'];
+                }
             }
             $input = $form->addDropdown('user', $options, NULL, $pos++);
             $input->val($INFO['userinfo']['name']);
@@ -559,8 +561,10 @@ class helper_plugin_task extends DokuWiki_Plugin {
 
             $filter = array();
             $filter['grps'] = $selectUserGroup;
-            foreach ($auth->retrieveUsers(0, 0, $filter) as $curr_user) {
-                $ret .= '<option' . ($curr_user['name'] == $INFO['userinfo']['name'] ? ' selected="selected"' : '') . '>' . $curr_user['name'] . '</option>';
+            if ($auth) {
+                foreach ($auth->retrieveUsers(0, 0, $filter) as $curr_user) {
+                    $ret .= '<option' . ($curr_user['name'] == $INFO['userinfo']['name'] ? ' selected="selected"' : '') . '>' . $curr_user['name'] . '</option>';
+                }
             }
             $ret .= '</select></td>';
         }
