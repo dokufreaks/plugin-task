@@ -79,8 +79,35 @@ div.dokuwiki form#task__changeview_form input.button {
   margin: 0;
 }
 
+div.dokuwiki th.priority,
+div.dokuwiki td.priority,
 div.dokuwiki th.status,
 div.dokuwiki td.status {
   color: __text_neu__;
   font-size: 80%;
+}
+
+div.dokuwiki td.priority.image {
+    background-repeat: no-repeat;
+    background-position: 50% 50%;
+}
+div.dokuwiki td.priority3 {
+    color: #ff0000;
+    font-weight: bold;
+}
+div.dokuwiki td.priority2 {
+    color: #FFD700;
+    font-weight: bold;
+}
+div.dokuwiki td.priority1 {
+    font-weight: bold;
+}
+div.dokuwiki td.priority3.image {
+    background-image: url(images/prio_critical.png);
+}
+div.dokuwiki td.priority2.image {
+    background-image: url(images/prio_high.png);
+}
+div.dokuwiki td.priority1.image {
+    background-image: url(images/prio_medium.png);
 }
