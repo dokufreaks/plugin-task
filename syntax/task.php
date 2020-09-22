@@ -65,7 +65,7 @@ class syntax_plugin_task_task extends DokuWiki_Syntax_Plugin {
     
         // XHTML output
         if ($mode == 'xhtml') {
-            $renderer->info['cache'] = false;
+            $renderer->nocache();
       
             // prepare data
             $this->_loadHelper();

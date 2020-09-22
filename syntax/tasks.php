@@ -70,7 +70,7 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
 
         if(!$pages) {
             if($mode != 'xhtml') return true;
-            $renderer->info['cache'] = false;
+            $renderer->nocache();
             if($select) $renderer->doc .= $this->_viewMenu($filter);
             if(auth_quickaclcheck($ns.':*') >= AUTH_CREATE) {
                 if(!in_array('noform', $flags)) {
@@ -94,7 +94,7 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
         if ($mode == 'xhtml') {
 
             // prevent caching to ensure content is always fresh
-            $renderer->info['cache'] = false;
+            $renderer->nocache();
 
             // show form to create a new task?
             $perm_create = (auth_quickaclcheck($ns.':*') >= AUTH_CREATE);
