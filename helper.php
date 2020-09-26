@@ -4,9 +4,6 @@
  * @author     Esther Brunner <wikidesign@gmail.com>
  */
 
-// must be run within Dokuwiki
-if (!defined('DOKU_INC')) die();
-
 class helper_plugin_task extends DokuWiki_Plugin {
   
     function getMethods() {

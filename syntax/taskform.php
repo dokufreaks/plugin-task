@@ -6,9 +6,6 @@
  * @author   LarsDW223
  */
 
-// must be run within Dokuwiki
-if (!defined('DOKU_INC')) die();
-
 class syntax_plugin_task_taskform extends DokuWiki_Syntax_Plugin {
     protected $helper = NULL;
 
