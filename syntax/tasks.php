@@ -6,9 +6,6 @@
  * @author   Esther Brunner <wikidesign@gmail.com>
  */
 
-// must be run within Dokuwiki
-if (!defined('DOKU_INC')) die();
-
 class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
     protected $helper = NULL;
 
