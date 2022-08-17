@@ -112,13 +112,27 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
             if ($select) $renderer->doc .= $this->_viewMenu($filter);
 
             // prepare pagelist columns
-            $pagelist->header['page'] = $this->getLang('task');
-            $pagelist->header['date'] = str_replace(' ', '&nbsp;', $this->getLang('date'));
-            $pagelist->header['user'] = str_replace(' ', '&nbsp;', $this->getLang('user'));
-            $pagelist->column['date'] = $this->getConf('datefield');
-            $pagelist->column['user'] = true;
+            if (method_exists ($pagelist, 'setHeaderTitle')) {
+                $pagelist->setHeaderTitle('page', $this->getLang('task'));
+                $pagelist->setHeaderTitle('date', str_replace(' ', '&nbsp;', $this->getLang('date')));
+                $pagelist->setHeaderTitle('user', str_replace(' ', '&nbsp;', $this->getLang('user')));
+                $pagelist->setColumn('date', $this->getConf('datefield'));
+                $pagelist->setColumn('user', true);
+            } else {
+                $pagelist->header['page'] = $this->getLang('task');
+                $pagelist->header['date'] = str_replace(' ', '&nbsp;', $this->getLang('date'));
+                $pagelist->header['user'] = str_replace(' ', '&nbsp;', $this->getLang('user'));
+                $pagelist->column['date'] = $this->getConf('datefield');
+                $pagelist->column['user'] = true;
+            }
             $pagelist->setFlags($flags);
             $pagelist->addColumn('task', 'status');
+            if(in_array('prioritytxt', $flags)) {
+                $pagelist->addColumn('task', 'prioritytxt');
+            }
+            if(in_array('priorityimg', $flags)) {
+                $pagelist->addColumn('task', 'priorityimg');
+            }
 
             // output list
             $pagelist->startList();

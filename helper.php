@@ -54,15 +54,29 @@ class helper_plugin_task extends DokuWiki_Plugin {
     /**
      * Returns the column header for the Pagelist Plugin
      */
-    function th() {
+    function th($column=NULL, &$class=NULL) {
+        if ($column == 'prioritytxt' || $column == 'priorityimg') {
+            $class .= 'priority priority'.$task['priority'];
+            return $this->getLang('priority');
+        }
         return $this->getLang('status');
     }
 
     /**
      * Returns the status of the task
      */
-    function td($id) {
+    function td($id, $column=NULL, &$class=NULL) {
         $task = $this->readTask($id);
+        if ($column == 'prioritytxt' || $column == 'priorityimg') {
+            $content = '';
+            $class .= 'priority priority'.$task['priority'];
+            if ($column == 'prioritytxt') {
+                $content = $this->priorityLabel($task['priority']);
+            } else if ($column == 'priorityimg') {
+                $class .= ' image';
+            }
+            return $content;
+        }
         return $this->statusLabel($task['status']);
     }
 
