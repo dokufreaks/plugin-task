@@ -1,4 +1,7 @@
 <?php
+
+use dokuwiki\Extension\Event;
+
 /**
  * @license    GPL 2 (http://www.gnu.org/licenses/gpl.html)
  * @author     Esther Brunner <wikidesign@gmail.com>
@@ -311,7 +314,7 @@ class helper_plugin_task extends DokuWiki_Plugin {
 
         if ((!$conf['subscribers']) && (!$conf['notify'])) return; //subscribers enabled?
         $data = array('id' => $ID, 'addresslist' => '', 'self' => false);
-        trigger_event('COMMON_NOTIFY_ADDRESSLIST', $data, 'subscription_addresslist');
+        Event::createAndTrigger('COMMON_NOTIFY_ADDRESSLIST', $data, 'subscription_addresslist');
         $bcc = $data['addresslist'];
         if ((empty($bcc)) && (!$conf['notify'])) return;
         $to   = $conf['notify'];
