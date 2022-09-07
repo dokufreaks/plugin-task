@@ -419,9 +419,11 @@ class helper_plugin_task extends DokuWiki_Plugin {
      * Returns access classification for VTODO
      */
     function _vclass($id) {
-        global $USERINFO; // checks access rights for anonymous user
-        if (auth_aclcheck($id, '', $USERINFO['grps'])) return 'PUBLIC';
-        else return 'PRIVATE';
+        if (auth_quickaclcheck($id) >= AUTH_READ) {
+            return 'PUBLIC';
+        } else {
+            return 'PRIVATE';
+        }
     }
 
     /**
