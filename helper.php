@@ -8,54 +8,56 @@ use dokuwiki\Extension\Event;
  */
 
 class helper_plugin_task extends DokuWiki_Plugin {
-  
+
     function getMethods() {
-        $result = array();
-        $result[] = array(
+        $result = [];
+        $result[] = [
                 'name'   => 'th',
                 'desc'   => 'returns the header of the task column for pagelist',
-                'return' => array('header' => 'string'),
-                );
-        $result[] = array(
+                'return' => ['header' => 'string'],
+        ];
+        $result[] = [
                 'name'   => 'td',
                 'desc'   => 'returns the status of the task',
-                'params' => array('id' => 'string'),
-                'return' => array('label' => 'string'),
-                );
-        $result[] = array(
+                'params' => ['id' => 'string'],
+                'return' => ['label' => 'string'],
+        ];
+        $result[] = [
                 'name'   => 'getTasks',
                 'desc'   => 'get task pages, sorted by priority',
-                'params' => array(
+                'params' => [
                     'namespace' => 'string',
                     'number (optional)' => 'integer',
-                    'filter (optional)' => 'string'),
-                'return' => array('pages' => 'array'),
-                );
-        $result[] = array(
+                    'filter (optional)' => 'string'],
+                'return' => ['pages' => 'array'],
+        ];
+        $result[] = [
                 'name'   => 'readTask',
                 'desc'   => 'get a single task metafile',
-                'params' => array('id' => 'string'),
-                'return' => array('task on success, else false' => 'array, (boolean)'),
-                );
-        $result[] = array(
+                'params' => ['id' => 'string'],
+                'return' => ['task on success, else false' => 'array, (boolean)'],
+        ];
+        $result[] = [
                 'name'   => 'writeTask',
                 'desc'   => 'save task metdata in a file',
-                'params' => array(
+                'params' => [
                     'id' => 'string',
-                    'task' => 'array'),
-                'return' => array('success' => 'boolean'),
-                );
-        $result[] = array(
+                    'task' => 'array'],
+                'return' => ['success' => 'boolean'],
+        ];
+        $result[] = [
                 'name'   => 'statusLabel',
                 'desc'   => 'returns the status label for a given integer',
-                'params' => array('status' => 'integer'),
-                'return' => array('label' => 'string'),
-                );
+                'params' => ['status' => 'integer'],
+                'return' => ['label' => 'string'],
+        ];
         return $result;
     }
-  
+
     /**
      * Returns the column header for the Pagelist Plugin
+     *
+     * @return string header text, escaped by Pagelist
      */
     function th() {
         return $this->getLang('status');
@@ -63,6 +65,12 @@ class helper_plugin_task extends DokuWiki_Plugin {
 
     /**
      * Returns the status of the task
+     *
+     * Used by pagelist plugin for filling the cells of the table
+     * and in listing by the tagfilter
+     *
+     * @param string $id page id of row
+     * @return string html with escaped values
      */
     function td($id) {
         $task = $this->readTask($id);
@@ -72,23 +80,23 @@ class helper_plugin_task extends DokuWiki_Plugin {
     /**
      * Returns an array of task pages, sorted by priority
      */
-    function getTasks($ns, $num = NULL, $filter = '', $user = NULL) {
+    function getTasks($ns, $num = null, $filter = '', $user = null) {
         global $conf;
 
-        if (!$filter) $filter = strtolower($_REQUEST['filter']);
-
-        require_once(DOKU_INC.'inc/search.php');
+        if (!$filter) {
+            $filter = strtolower($_REQUEST['filter']);
+        }
 
         $dir = $conf['datadir'].($ns ? '/'.str_replace(':', '/', $ns): '');
 
         // returns the list of pages in the given namespace and it's subspaces
-        $items = array();
-        $opts = array();
+        $items = [];
+        $opts = [];
         $ns = utf8_encodeFN(str_replace(':', '/', $ns));
         search($items, $conf['datadir'], 'search_allpages', $opts, $ns);
 
         // add pages with comments to result
-        $result = array();
+        $result = [];
         foreach ($items as $item) {
             $id = $item['id'];
 
@@ -117,25 +125,25 @@ class helper_plugin_task extends DokuWiki_Plugin {
                     if ($task['status'] != 4) continue;
                 } else {
                     // No pure status filter, skip done and closed tasks
-                    if (($task['status'] < 0) || ($task['status'] > 2)) continue;
+                    if ($task['status'] < 0 || $task['status'] > 2) continue;
                 }
             }
 
             // skip other's tasks if filter is 'my'
-            if (($filter == 'my') && (!$responsible)) continue;
+            if ($filter == 'my' && !$responsible) continue;
 
             // skip assigned and not new tasks if filter is 'new'
-            if (($filter == 'new') && ($task['user']['name'] || ($task['status'] != 0))) continue;
+            if ($filter == 'new' && ($task['user']['name'] || $task['status'] != 0)) continue;
 
-            // filter is 'due' or 'overdue' 
-            if (in_array($filter, array('due', 'overdue'))) {
+            // filter is 'due' or 'overdue'
+            if (in_array($filter, ['due', 'overdue'])) {
                 if (!$date || ($date > time()) || ($task['status'] > 2)) continue;
                 elseif (($date + 86400 < time()) && ($filter == 'due')) continue;
                 elseif (($date + 86400 > time()) && ($filter == 'overdue')) continue;
-            } 
+            }
             $perm = auth_quickaclcheck($id);
 
-            $result[$task['key']] = array(
+            $result[$task['key']] = [
                     'id'       => $id,
                     'date'     => $date,
                     'user'     => $task['user']['name'],
@@ -144,13 +152,15 @@ class helper_plugin_task extends DokuWiki_Plugin {
                     'perm'     => $perm,
                     'file'     => $task['file'],
                     'exists'   => true,
-                    );
+            ];
         }
 
         // finally sort by time of last comment
         krsort($result);
 
-        if (is_numeric($num)) $result = array_slice($result, 0, $num);
+        if (is_numeric($num)) {
+            $result = array_slice($result, 0, $num);
+        }
 
         return $result;
     }
@@ -163,15 +173,19 @@ class helper_plugin_task extends DokuWiki_Plugin {
         if (!@file_exists($file)) {
             $data = p_get_metadata($id, 'task');
             if (is_array($data)) {
-                $data['date'] = array('due' => $data['date']);
-                $data['user'] = array('name' => $data['user']);
-                $meta = array('task' => NULL);
-                if ($this->writeTask($id, $data)) p_set_metadata($id, $meta);
+                $data['date'] = ['due' => $data['date']];
+                $data['user'] = ['name' => $data['user']];
+                $meta = ['task' => null];
+                if ($this->writeTask($id, $data)) {
+                    p_set_metadata($id, $meta);
+                }
             }
         } else {
             $data = unserialize(io_readFile($file, false));
         }
-        if (!is_array($data) || empty($data)) return false;
+        if (!is_array($data) || empty($data)) {
+            return false;
+        }
         $data['file']   = $file;
         $data['exists'] = true;
         return $data;
@@ -181,22 +195,28 @@ class helper_plugin_task extends DokuWiki_Plugin {
      * Saves the .task metafile
      */
     function writeTask($id, $data) {
-        if (!is_array($data)) return false;
-        $file = ($data['file'] ? $data['file'] : metaFN($id, '.task'));
+        if (!is_array($data)) {
+            return false;
+        }
+        $file = ($data['file'] ?: metaFN($id, '.task'));
 
         // remove file and exists keys
         unset($data['file']);
         unset($data['exists']);
 
         // set creation or modification time
-        if (!is_array($data['date'])) $data['date'] = array('due' => $data['date']);
+        if (!is_array($data['date'])) {
+            $data['date'] = ['due' => $data['date']];
+        }
         if (!@file_exists($file) || !$data['date']['created']) {
             $data['date']['created'] = time();
         } else {
             $data['date']['modified'] = time();
         }
 
-        if (!is_array($data['user'])) $data['user'] = array('name' => $data['user']);
+        if (!is_array($data['user'])) {
+            $data['user'] = ['name' => $data['user']];
+        }
 
         if (!isset($data['status'])) {    // make sure we don't overwrite status
             $current = unserialize(io_readFile($file, false));
@@ -259,11 +279,17 @@ class helper_plugin_task extends DokuWiki_Plugin {
      * Is the given task assigned to the current user?
      */
     function _isResponsible($user) {
-        global $INFO;
+        global $INFO, $INPUT;
 
-        if (!$user) return false;
+        if (!$user) {
+            return false;
+        }
 
-        if (isset($user['id']) && $user['id'] == $_SERVER['REMOTE_USER'] || isset($user['name']) && $user['name'] == $INFO['userinfo']['name'] || $user == $INFO['userinfo']['name']) {
+        if (
+            isset($user['id']) && $user['id'] == $INPUT->server->str('REMOTE_USER')
+            || isset($user['name']) && $user['name'] == $INFO['userinfo']['name']
+            || $user == $INFO['userinfo']['name']
+        ) {
             return true;
         }
 
@@ -274,7 +300,9 @@ class helper_plugin_task extends DokuWiki_Plugin {
      * Interpret date with strtotime()
      */
     function _interpretDate($str) {
-        if (!$str) return NULL;
+        if (!$str) {
+            return null;
+        }
 
         // only year given -> time till end of year
         if (preg_match("/^\d{4}$/", $str)) {
@@ -297,7 +325,9 @@ class helper_plugin_task extends DokuWiki_Plugin {
 
         // convert to UNIX time
         $date = strtotime($str);
-        if ($date === -1) $date = NULL;
+        if ($date === -1) {
+            $date = null;
+        }
         return $date;
     }
 
@@ -313,11 +343,16 @@ class helper_plugin_task extends DokuWiki_Plugin {
         global $conf;
         global $ID;
 
-        if ((!$conf['subscribers']) && (!$conf['notify'])) return; //subscribers enabled?
-        $data = array('id' => $ID, 'addresslist' => '', 'self' => false);
+        //subscribers enabled?
+        if (!$conf['subscribers'] && !$conf['notify']) {
+            return;
+        }
+        $data = ['id' => $ID, 'addresslist' => '', 'self' => false];
         Event::createAndTrigger('COMMON_NOTIFY_ADDRESSLIST', $data, 'subscription_addresslist');
         $bcc = $data['addresslist'];
-        if ((empty($bcc)) && (!$conf['notify'])) return;
+        if (empty($bcc) && !$conf['notify']) {
+            return;
+        }
         $to   = $conf['notify'];
         $text = io_readFile($this->localFN('subscribermail'));
 
@@ -336,8 +371,11 @@ class helper_plugin_task extends DokuWiki_Plugin {
         $text = str_replace('@DOKUWIKIURL@', DOKU_URL, $text);
 
         $subject = '['.$conf['title'].'] ';
-        if ($task['status'] == 0) $subject .= $this->getLang('mail_newtask');
-        else $subject .= $this->getLang('mail_changedtask');
+        if ($task['status'] == 0) {
+            $subject .= $this->getLang('mail_newtask');
+        } else {
+            $subject .= $this->getLang('mail_changedtask');
+        }
 
         mail_send($to, $subject, $text, $conf['mailfrom'], '', $bcc);
     }
@@ -354,23 +392,32 @@ class helper_plugin_task extends DokuWiki_Plugin {
             'UID:'.$id.'@'.$_SERVER['SERVER_NAME'].CRLF.
             'URL:'.wl($id, '', true, '&').CRLF.
             'SUMMARY:'.$this->_vsc($meta['title']).CRLF;
-        if ($meta['description']['abstract'])
-            $ret .= 'DESCRIPTION:'.$this->_vsc($meta['description']['abstract']).CRLF;
-        if ($meta['subject'])
-            $ret .= 'CATEGORIES:'.$this->_vcategories($meta['subject']).CRLF;
-        if ($task['date']['created'])
-            $ret .= 'CREATED:'.$this->_vdate($task['date']['created']).CRLF;
-        if ($task['date']['modified'])
-            $ret .= 'LAST-MODIFIED:'.$this->_vdate($task['date']['modified']).CRLF;
-        if ($task['date']['due'])
-            $ret .= 'DUE:'.$this->_vdate($task['date']['due']).CRLF;
-        if ($task['date']['completed'])
-            $ret .= 'COMPLETED:'.$this->_vdate($task['date']['completed']).CRLF;
-        if ($task['user']) $ret .= 'ORGANIZER;CN="'.$this->_vsc($task['user']['name']).'":'.
-            'MAILTO:'.$task['user']['mail'].CRLF;
+        if ($meta['description']['abstract']) {
+            $ret .= 'DESCRIPTION:' . $this->_vsc($meta['description']['abstract']) . CRLF;
+        }
+        if ($meta['subject']) {
+            $ret .= 'CATEGORIES:' . $this->_vcategories($meta['subject']) . CRLF;
+        }
+        if ($task['date']['created']) {
+            $ret .= 'CREATED:' . $this->_vdate($task['date']['created']) . CRLF;
+        }
+        if ($task['date']['modified']) {
+            $ret .= 'LAST-MODIFIED:' . $this->_vdate($task['date']['modified']) . CRLF;
+        }
+        if ($task['date']['due']) {
+            $ret .= 'DUE:' . $this->_vdate($task['date']['due']) . CRLF;
+        }
+        if ($task['date']['completed']) {
+            $ret .= 'COMPLETED:' . $this->_vdate($task['date']['completed']) . CRLF;
+        }
+        if ($task['user']) {
+            $ret .= 'ORGANIZER;CN="' . $this->_vsc($task['user']['name']) . '":' .
+                'MAILTO:' . $task['user']['mail'] . CRLF;
+        }
         $ret .= 'STATUS:'.$this->_vstatus($task['status']).CRLF;
-        if (is_numeric($task['priority']))
-            $ret .= 'PRIORITY:'.(7 - ($task['priority'] * 2)).CRLF;
+        if (is_numeric($task['priority'])) {
+            $ret .= 'PRIORITY:' . (7 - ($task['priority'] * 2)) . CRLF;
+        }
         $ret .= 'CLASS:'.$this->_vclass($id).CRLF.
             'END:VTODO'.CRLF;
         return $ret;
@@ -380,8 +427,8 @@ class helper_plugin_task extends DokuWiki_Plugin {
      * Encodes vCard / iCal special characters
      */
     function _vsc($string) {
-        $search = array("\\", ",", ";", "\n", "\r");
-        $replace = array("\\\\", "\\,", "\\;", "\\n", "\\n");
+        $search = ["\\", ",", ";", "\n", "\r"];
+        $replace = ["\\\\", "\\,", "\\;", "\\n", "\\n"];
         return str_replace($search, $replace, $string);
     }
 
@@ -389,8 +436,11 @@ class helper_plugin_task extends DokuWiki_Plugin {
      * Generates YYYYMMDD"T"hhmmss"Z" UTC time date format (ISO 8601 / RFC 3339)
      */
     function _vdate($date, $extended = false) {
-        if ($extended) return strftime('%Y-%m-%dT%H:%M:%SZ', $date);
-        else return strftime('%Y%m%dT%H%M%SZ', $date);
+        if ($extended) {
+            return strftime('%Y-%m-%dT%H:%M:%SZ', $date);
+        } else {
+            return strftime('%Y%m%dT%H%M%SZ', $date);
+        }
     }
 
     /**
@@ -400,10 +450,10 @@ class helper_plugin_task extends DokuWiki_Plugin {
         switch ($status) {
             case -1:
                 return 'CANCELLED';
-            case 1: 
+            case 1:
             case 2:
                 return 'IN-PROCESS';
-            case 3: 
+            case 3:
             case 4:
                 return 'COMPLETED';
             default:
@@ -415,7 +465,9 @@ class helper_plugin_task extends DokuWiki_Plugin {
      * Returns VTODO categories
      */
     function _vcategories($cat) {
-        if (!is_array($cat)) $cat = explode(' ', $cat);
+        if (!is_array($cat)) {
+            $cat = explode(' ', $cat);
+        }
         return join(',', $this->_vsc($cat));
     }
 
@@ -433,16 +485,16 @@ class helper_plugin_task extends DokuWiki_Plugin {
     /**
      * Show the form to create a new task.
      * The function just forwards the call to the old or new function.
-     * 
+     *
      * @param string $ns              The DokuWiki namespace in which the new task
      *                                page shall be created
      * @param bool   $selectUser      If false then create a simple input line for the user field.
      *                                If true then create a drop down list.
-     * @param bool   $selectUserGroup If not NULL and if $selectUser==true then the drop down list
+     * @param bool   $selectUserGroup If not null and if $selectUser==true then the drop down list
      *                                for the user field will only show users who are members of
      *                                the user group given in $selectUserGroup.
      */
-    function _newTaskForm($ns, $selectUser=false, $selectUserGroup=NULL) {
+    function _newTaskForm($ns, $selectUser=false, $selectUserGroup=null) {
         if (class_exists('dokuwiki\Form\Form')) {
             return $this->_newTaskFormNew($ns, $selectUser, $selectUserGroup);
         } else {
@@ -453,13 +505,13 @@ class helper_plugin_task extends DokuWiki_Plugin {
     /**
      * Show the form to create a new task.
      * This is the new version using class dokuwiki\Form\Form.
-     * 
+     *
      * @see _newTaskForm
      */
-    protected function _newTaskFormNew($ns, $selectUser=false, $selectUserGroup=NULL) {
+    protected function _newTaskFormNew($ns, $selectUser=false, $selectUserGroup=null) {
         global $ID, $lang, $INFO, $auth;
 
-        $form = new dokuwiki\Form\Form(array('id' => 'task__newtask_form'));
+        $form = new dokuwiki\Form\Form(['id' => 'task__newtask_form']);
         $pos = 1;
 
         // Open fieldset
@@ -471,7 +523,7 @@ class helper_plugin_task extends DokuWiki_Plugin {
         $form->setHiddenField ('ns', $ns);
 
         // Set input filed for task title
-        $input = $form->addTextInput('title', NULL, $pos++);
+        $input = $form->addTextInput('title', null, $pos++);
         $input->attr('id', 'task__newtask_title');
         $input->attr('size', '40');
 
@@ -479,19 +531,19 @@ class helper_plugin_task extends DokuWiki_Plugin {
         $form->addHTML('<table class="blind"><tr><th>'.$this->getLang('user').':</th><td>', $pos++);
         if(!$selectUser) {
             // Old way input field
-            $input = $form->addTextInput('user', NULL, $pos++);
+            $input = $form->addTextInput('user', null, $pos++);
             $input->attr('value', hsc($INFO['userinfo']['name']));
         } else {
             // Select user from drop down list
-            $filter = array();
+            $filter = [];
             $filter['grps'] = $selectUserGroup;
-            $options = array();
+            $options = [];
             if ($auth) {
                 foreach ($auth->retrieveUsers(0, 0, $filter) as $curr_user) {
                     $options [] = $curr_user['name'];
                 }
             }
-            $input = $form->addDropdown('user', $options, NULL, $pos++);
+            $input = $form->addDropdown('user', $options, null, $pos++);
             $input->val($INFO['userinfo']['name']);
         }
         $form->addHTML('</td></tr>', $pos++);
@@ -499,21 +551,19 @@ class helper_plugin_task extends DokuWiki_Plugin {
         // Field for due date
         if ($this->getConf('datefield')) {
             $form->addHTML('<tr><th>'.$this->getLang('date').':</th><td>', $pos++);
-            $input = $form->addTextInput('date', NULL, $pos++);
+            $input = $form->addTextInput('date', null, $pos++);
             $input->attr('value', date('Y-m-d'));
             $form->addHTML('</td></tr>', $pos++);
         }
 
         // Select priority from drop down list
         $form->addHTML('<tr><th>'.$this->getLang('priority').':</th><td>');
-        $filter = array();
-        $filter['grps'] = $selectUserGroup;
-        $options = array();
+        $options = [];
         $options [''] = $this->getLang('low');
         $options ['!'] = $this->getLang('medium');
         $options ['!!'] = $this->getLang('high');
         $options ['!!!'] = $this->getLang('critical');
-        $input = $form->addDropdown('priority', $options, NULL, $pos++);
+        $input = $form->addDropdown('priority', $options, null, $pos++);
         $input->attr('size', '1');
         $input->val($this->getLang('low'));
         $form->addHTML('</td></tr>', $pos++);
@@ -521,7 +571,7 @@ class helper_plugin_task extends DokuWiki_Plugin {
         $form->addHTML('</table>', $pos++);
 
         // Add button
-        $form->addButton(NULL, $lang['btn_create'], $pos++);
+        $form->addButton(null, $lang['btn_create'], $pos++);
 
         // Close fieldset
         $form->addFieldsetClose($pos++);
@@ -537,10 +587,10 @@ class helper_plugin_task extends DokuWiki_Plugin {
     /**
      * Show the form to create a new task.
      * This is the old version, creating all HTML code on its own.
-     * 
+     *
      * @see _newTaskForm
      */
-    protected function _newTaskFormOld($ns, $selectUser=false, $selectUserGroup=NULL) {
+    protected function _newTaskFormOld($ns, $selectUser=false, $selectUserGroup=null) {
         global $ID, $lang, $INFO, $auth;
 
         $ret =  '<div class="newtask_form">';
@@ -562,7 +612,7 @@ class helper_plugin_task extends DokuWiki_Plugin {
             $ret .= '<th>'.$this->getLang('user').':</th>';
             $ret .= '<td><select name="user">';
 
-            $filter = array();
+            $filter = [];
             $filter['grps'] = $selectUserGroup;
             if ($auth) {
                 foreach ($auth->retrieveUsers(0, 0, $filter) as $curr_user) {
@@ -590,4 +640,3 @@ class helper_plugin_task extends DokuWiki_Plugin {
         return $ret;
     }
 }
-// vim:ts=4:sw=4:et:enc=utf-8:
