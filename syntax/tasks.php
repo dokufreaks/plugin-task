@@ -1,7 +1,7 @@
 <?php
 /**
  * Task Plugin, tasks component: lists tasks of a given namespace
- * 
+ *
  * @license  GPL 2 (http://www.gnu.org/licenses/gpl.html)
  * @author   Esther Brunner <wikidesign@gmail.com>
  */
@@ -19,7 +19,7 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
     function getType() { return 'substition'; }
     function getPType() { return 'block'; }
     function getSort() { return 306; }
-  
+
     function connectTo($mode) {
         $this->Lexer->addSpecialPattern('\{\{tasks>.+?\}\}', $mode, 'plugin_task_tasks');
     }
@@ -71,7 +71,7 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
             if($select) $renderer->doc .= $this->_viewMenu($filter);
             if(auth_quickaclcheck($ns.':*') >= AUTH_CREATE) {
                 if(!in_array('noform', $flags)) {
-                    if ($this->helper) $renderer->doc .= $this->helper->_newTaskForm($ns);
+                    if ($this->helper) $renderer->doc .= $this->helper->newTaskForm($ns);
                 }
             }
             return true; // nothing to display
@@ -97,7 +97,7 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
             $perm_create = (auth_quickaclcheck($ns.':*') >= AUTH_CREATE);
             if($perm_create && ($this->getConf('tasks_formposition') == 'top')) {
                 if(!in_array('noform', $flags)) {
-                    if ($this->helper) $renderer->doc .= $this->helper->_newTaskForm($ns);
+                    if ($this->helper) $renderer->doc .= $this->helper->newTaskForm($ns);
                 }
             }
 
@@ -108,7 +108,7 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
                 return false;
             }
 
-            // show view filter popup if not 
+            // show view filter popup if not
             if ($select) $renderer->doc .= $this->_viewMenu($filter);
 
             // prepare pagelist columns
@@ -129,12 +129,12 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
                 $pagelist->addPage($page);
             }
             $renderer->doc .= $pagelist->finishList();
-            $renderer->doc .= $this->_paginationLinks($numOfPages, $currentPage, $filter);      
+            $renderer->doc .= $this->_paginationLinks($numOfPages, $currentPage, $filter);
 
             // show form to create a new task?
             if($perm_create && ($this->getConf('tasks_formposition') == 'bottom')) {
                 if(!in_array('noform', $flags)) {
-                    if ($this->helper) $renderer->doc .= $this->helper->_newTaskForm($ns);
+                    if ($this->helper) $renderer->doc .= $this->helper->newTaskForm($ns);
                 }
             }
 
@@ -150,7 +150,7 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
         }
         return false;
     }
-  
+
 /* ---------- (X)HTML Output Functions ---------- */
 
     /**
@@ -168,7 +168,7 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
     /**
      * Show a popup to select the task view filter.
      * This is the new version using class dokuwiki\Form\Form.
-     * 
+     *
      * @see _viewMenu
      */
     function _viewMenuNew($filter) {
@@ -224,7 +224,7 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
     /**
      * Show a popup to select the task view filter.
      * Old function generating all HTML on its own.
-     * 
+     *
      * @see _viewMenu
      */
     function _viewMenuOld($filter) {
@@ -261,7 +261,7 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
 
         return $ret;
     }
-  
+
    /**
     * Returns an array of available view filters for the task list
     */
@@ -274,7 +274,7 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
         }
         return $filters;
     }
-  
+
     /**
     * Returns pagination links if more than one page
     */
@@ -295,7 +295,7 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
                 if(isset($_REQUEST['view_user'])) {
                     $user = array();
                     $user['id'] = $_REQUEST['view_user'];
-                    if($this->helper->_isResponsible($user)) {
+                    if($this->helper->isResponsible($user)) {
                         $opt['view_user'] = $_REQUEST['view_user'];
                     }
                 }

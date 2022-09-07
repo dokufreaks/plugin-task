@@ -169,7 +169,7 @@ class action_plugin_task extends DokuWiki_Action_Plugin {
             return 'show';
         }
 
-        $responsible = $my->_isResponsible($task['user']['name']);
+        $responsible = $my->isResponsible($task['user']['name']);
 
         // some additional checks if change not performed by an admin
         // FIXME error messages?

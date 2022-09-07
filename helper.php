@@ -9,7 +9,7 @@ use dokuwiki\Extension\Event;
 
 class helper_plugin_task extends DokuWiki_Plugin {
 
-    function getMethods() {
+    public function getMethods() {
         $result = [];
         $result[] = [
                 'name'   => 'th',
@@ -59,7 +59,7 @@ class helper_plugin_task extends DokuWiki_Plugin {
      *
      * @return string header text, escaped by Pagelist
      */
-    function th() {
+    public function th() {
         return $this->getLang('status');
     }
 
@@ -72,7 +72,7 @@ class helper_plugin_task extends DokuWiki_Plugin {
      * @param string $id page id of row
      * @return string html with escaped values
      */
-    function td($id) {
+    public function td($id) {
         $task = $this->readTask($id);
         return $this->statusLabel($task['status']);
     }
@@ -80,7 +80,7 @@ class helper_plugin_task extends DokuWiki_Plugin {
     /**
      * Returns an array of task pages, sorted by priority
      */
-    function getTasks($ns, $num = null, $filter = '', $user = null) {
+    public function getTasks($ns, $num = null, $filter = '', $user = null) {
         global $conf;
 
         if (!$filter) {
@@ -104,7 +104,7 @@ class helper_plugin_task extends DokuWiki_Plugin {
             if (!$task = $this->readTask($id)) continue;
 
             $date = $task['date']['due'];
-            $responsible = $this->_isResponsible($task['user']);
+            $responsible = $this->isResponsible($task['user']);
 
             // Check status in detail if filter is not 'all'
             if ($filter != 'all') {
@@ -168,7 +168,7 @@ class helper_plugin_task extends DokuWiki_Plugin {
     /**
      * Reads the .task metafile
      */
-    function readTask($id) {
+    public function readTask($id) {
         $file = metaFN($id, '.task');
         if (!@file_exists($file)) {
             $data = p_get_metadata($id, 'task');
@@ -194,7 +194,7 @@ class helper_plugin_task extends DokuWiki_Plugin {
     /**
      * Saves the .task metafile
      */
-    function writeTask($id, $data) {
+    public function writeTask($id, $data) {
         if (!is_array($data)) {
             return false;
         }
@@ -226,7 +226,7 @@ class helper_plugin_task extends DokuWiki_Plugin {
         }
 
         // generate vtodo for iCal file download
-        $data['vtodo'] = $this->_vtodo($id, $data);
+        $data['vtodo'] = $this->vtodo($id, $data);
 
         // generate sortkey with priority and creation date
         $data['key'] = chr($data['priority'] + 97).(2000000000 - $data['date']['created']);
@@ -235,14 +235,14 @@ class helper_plugin_task extends DokuWiki_Plugin {
         $ok = io_saveFile($file, serialize($data));
 
         // and finally notify users
-        $this->_notify($data);
+        $this->notify($data);
         return $ok;
     }
 
     /**
      * Returns the label of a status
      */
-    function statusLabel($status) {
+    public function statusLabel($status) {
         switch ($status) {
             case -1:
                 return $this->getLang('rejected');
@@ -262,7 +262,7 @@ class helper_plugin_task extends DokuWiki_Plugin {
     /**
      * Returns the label of a priority
      */
-    function priorityLabel($priority) {
+    public function priorityLabel($priority) {
         switch ($priority) {
             case 1:
                 return $this->getLang('medium');
@@ -278,7 +278,7 @@ class helper_plugin_task extends DokuWiki_Plugin {
     /**
      * Is the given task assigned to the current user?
      */
-    function _isResponsible($user) {
+    public function isResponsible($user) {
         global $INFO, $INPUT;
 
         if (!$user) {
@@ -299,7 +299,7 @@ class helper_plugin_task extends DokuWiki_Plugin {
     /**
      * Interpret date with strtotime()
      */
-    function _interpretDate($str) {
+    public function interpretDate($str) {
         if (!$str) {
             return null;
         }
@@ -339,7 +339,7 @@ class helper_plugin_task extends DokuWiki_Plugin {
      * @author Andreas Gohr <andi@splitbrain.org>
      * @author Esther Brunner <wikidesign@gmail.com>
      */
-    function _notify($task) {
+    protected function notify($task) {
         global $conf;
         global $ID;
 
@@ -383,7 +383,7 @@ class helper_plugin_task extends DokuWiki_Plugin {
     /**
      * Generates a VTODO section for iCal file download
      */
-    function _vtodo($id, $task) {
+    protected function vtodo($id, $task) {
         if (!defined('CRLF')) define('CRLF', "\r\n");
 
         $meta = p_get_metadata($id);
@@ -391,34 +391,34 @@ class helper_plugin_task extends DokuWiki_Plugin {
         $ret = 'BEGIN:VTODO'.CRLF.
             'UID:'.$id.'@'.$_SERVER['SERVER_NAME'].CRLF.
             'URL:'.wl($id, '', true, '&').CRLF.
-            'SUMMARY:'.$this->_vsc($meta['title']).CRLF;
+            'SUMMARY:'.$this->vsc($meta['title']).CRLF;
         if ($meta['description']['abstract']) {
-            $ret .= 'DESCRIPTION:' . $this->_vsc($meta['description']['abstract']) . CRLF;
+            $ret .= 'DESCRIPTION:' . $this->vsc($meta['description']['abstract']) . CRLF;
         }
         if ($meta['subject']) {
-            $ret .= 'CATEGORIES:' . $this->_vcategories($meta['subject']) . CRLF;
+            $ret .= 'CATEGORIES:' . $this->vcategories($meta['subject']) . CRLF;
         }
         if ($task['date']['created']) {
-            $ret .= 'CREATED:' . $this->_vdate($task['date']['created']) . CRLF;
+            $ret .= 'CREATED:' . $this->vdate($task['date']['created']) . CRLF;
         }
         if ($task['date']['modified']) {
-            $ret .= 'LAST-MODIFIED:' . $this->_vdate($task['date']['modified']) . CRLF;
+            $ret .= 'LAST-MODIFIED:' . $this->vdate($task['date']['modified']) . CRLF;
         }
         if ($task['date']['due']) {
-            $ret .= 'DUE:' . $this->_vdate($task['date']['due']) . CRLF;
+            $ret .= 'DUE:' . $this->vdate($task['date']['due']) . CRLF;
         }
         if ($task['date']['completed']) {
-            $ret .= 'COMPLETED:' . $this->_vdate($task['date']['completed']) . CRLF;
+            $ret .= 'COMPLETED:' . $this->vdate($task['date']['completed']) . CRLF;
         }
         if ($task['user']) {
-            $ret .= 'ORGANIZER;CN="' . $this->_vsc($task['user']['name']) . '":' .
+            $ret .= 'ORGANIZER;CN="' . $this->vsc($task['user']['name']) . '":' .
                 'MAILTO:' . $task['user']['mail'] . CRLF;
         }
-        $ret .= 'STATUS:'.$this->_vstatus($task['status']).CRLF;
+        $ret .= 'STATUS:'.$this->vstatus($task['status']).CRLF;
         if (is_numeric($task['priority'])) {
             $ret .= 'PRIORITY:' . (7 - ($task['priority'] * 2)) . CRLF;
         }
-        $ret .= 'CLASS:'.$this->_vclass($id).CRLF.
+        $ret .= 'CLASS:'.$this->vclass($id).CRLF.
             'END:VTODO'.CRLF;
         return $ret;
     }
@@ -426,7 +426,7 @@ class helper_plugin_task extends DokuWiki_Plugin {
     /**
      * Encodes vCard / iCal special characters
      */
-    function _vsc($string) {
+    protected function vsc($string) {
         $search = ["\\", ",", ";", "\n", "\r"];
         $replace = ["\\\\", "\\,", "\\;", "\\n", "\\n"];
         return str_replace($search, $replace, $string);
@@ -435,7 +435,7 @@ class helper_plugin_task extends DokuWiki_Plugin {
     /**
      * Generates YYYYMMDD"T"hhmmss"Z" UTC time date format (ISO 8601 / RFC 3339)
      */
-    function _vdate($date, $extended = false) {
+    protected function vdate($date, $extended = false) {
         if ($extended) {
             return strftime('%Y-%m-%dT%H:%M:%SZ', $date);
         } else {
@@ -446,7 +446,7 @@ class helper_plugin_task extends DokuWiki_Plugin {
     /**
      * Returns VTODO status
      */
-    function _vstatus($status) {
+    protected function vstatus($status) {
         switch ($status) {
             case -1:
                 return 'CANCELLED';
@@ -464,17 +464,17 @@ class helper_plugin_task extends DokuWiki_Plugin {
     /**
      * Returns VTODO categories
      */
-    function _vcategories($cat) {
+    protected function vcategories($cat) {
         if (!is_array($cat)) {
             $cat = explode(' ', $cat);
         }
-        return join(',', $this->_vsc($cat));
+        return join(',', $this->vsc($cat));
     }
 
     /**
      * Returns access classification for VTODO
      */
-    function _vclass($id) {
+    protected function vclass($id) {
         if (auth_quickaclcheck($id) >= AUTH_READ) {
             return 'PUBLIC';
         } else {
@@ -494,11 +494,11 @@ class helper_plugin_task extends DokuWiki_Plugin {
      *                                for the user field will only show users who are members of
      *                                the user group given in $selectUserGroup.
      */
-    function _newTaskForm($ns, $selectUser=false, $selectUserGroup=null) {
+    public function newTaskForm($ns, $selectUser=false, $selectUserGroup=null) {
         if (class_exists('dokuwiki\Form\Form')) {
-            return $this->_newTaskFormNew($ns, $selectUser, $selectUserGroup);
+            return $this->newTaskFormNew($ns, $selectUser, $selectUserGroup);
         } else {
-            return $this->_newTaskFormOld($ns, $selectUser, $selectUserGroup);
+            return $this->newTaskFormOld($ns, $selectUser, $selectUserGroup);
         }
     }
 
@@ -506,9 +506,9 @@ class helper_plugin_task extends DokuWiki_Plugin {
      * Show the form to create a new task.
      * This is the new version using class dokuwiki\Form\Form.
      *
-     * @see _newTaskForm
+     * @see newTaskForm
      */
-    protected function _newTaskFormNew($ns, $selectUser=false, $selectUserGroup=null) {
+    protected function newTaskFormNew($ns, $selectUser=false, $selectUserGroup=null) {
         global $ID, $lang, $INFO, $auth;
 
         $form = new dokuwiki\Form\Form(['id' => 'task__newtask_form']);
@@ -588,9 +588,9 @@ class helper_plugin_task extends DokuWiki_Plugin {
      * Show the form to create a new task.
      * This is the old version, creating all HTML code on its own.
      *
-     * @see _newTaskForm
+     * @see newTaskForm
      */
-    protected function _newTaskFormOld($ns, $selectUser=false, $selectUserGroup=null) {
+    protected function newTaskFormOld($ns, $selectUser=false, $selectUserGroup=null) {
         global $ID, $lang, $INFO, $auth;
 
         $ret =  '<div class="newtask_form">';

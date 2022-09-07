@@ -1,7 +1,7 @@
 <?php
 /**
  * Task Plugin, task form component: show new task form (only)
- * 
+ *
  * @license  GPL 2 (http://www.gnu.org/licenses/gpl.html)
  * @author   LarsDW223
  */
@@ -19,7 +19,7 @@ class syntax_plugin_task_taskform extends DokuWiki_Syntax_Plugin {
     function getType() { return 'substition'; }
     function getPType() { return 'block'; }
     function getSort() { return 306; }
-  
+
     function connectTo($mode) {
         $this->Lexer->addSpecialPattern('\{\{task>form>.+?\}\}', $mode, 'plugin_task_taskform');
     }
@@ -54,7 +54,7 @@ class syntax_plugin_task_taskform extends DokuWiki_Syntax_Plugin {
         list($ns, $flags, $selectUserGroup) = $data;
 
         $selectUser = in_array('selectUser', $flags);
-        if ($this->helper) $renderer->doc .= $this->helper->_newTaskForm($ns, $selectUser, $selectUserGroup);
+        if ($this->helper) $renderer->doc .= $this->helper->newTaskForm($ns, $selectUser, $selectUserGroup);
         return true;
     }
 }

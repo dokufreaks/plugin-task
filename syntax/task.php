@@ -5,7 +5,7 @@
  * @license  GPL 2 (http://www.gnu.org/licenses/gpl.html)
  * @author   Esther Brunner <wikidesign@gmail.com>
  */
- 
+
 class syntax_plugin_task_task extends DokuWiki_Syntax_Plugin {
 
     var $my   = NULL;
@@ -14,34 +14,34 @@ class syntax_plugin_task_task extends DokuWiki_Syntax_Plugin {
     function getType() { return 'substition'; }
     function getSort() { return 305; }
     function getPType() { return 'block';}
-  
+
     function connectTo($mode) {
         $this->Lexer->addSpecialPattern('~~TASK.*?~~', $mode, 'plugin_task_task');
     }
-  
+
     function handle($match, $state, $pos, Doku_Handler $handler) {
         global $ID;
         global $INFO;
         global $ACT;
         global $REV;
-     
+
         // strip markup and split arguments
         $match = substr($match, 6, -2);
         $priority = strspn(strstr($match, '!'), '!');
         $match = trim($match, ':!');
         list($user, $date) = explode('?', $match);
-    
+
         if ($my =& plugin_load('helper', 'task')) {
-            $date = $my->_interpretDate($date);
-      
+            $date = $my->interpretDate($date);
+
             $task = array(
                     'user'     => array('name' => $user),
                     'date'     => array('due' => $date),
                     'priority' => $priority
                     );
 
-            // save task meta file if changes were made 
-            // but only for already existing tasks, or when the page is saved 
+            // save task meta file if changes were made
+            // but only for already existing tasks, or when the page is saved
             // $REV prevents overwriting current task information with old revision ones
             if(@file_exists(metaFN($ID, '.task')) && $ACT != 'preview' && !$REV) {
                 $current = $my->readTask($ID);
@@ -53,17 +53,17 @@ class syntax_plugin_task_task extends DokuWiki_Syntax_Plugin {
             }
         }
         return array($user, $date, $priority);
-    }      
- 
-    function render($mode, Doku_Renderer $renderer, $data) {  
+    }
+
+    function render($mode, Doku_Renderer $renderer, $data) {
         global $ID;
 
         list($user, $date, $priority) = $data;
-    
+
         // XHTML output
         if ($mode == 'xhtml') {
             $renderer->nocache();
-      
+
             // prepare data
             $this->_loadHelper();
 
@@ -88,7 +88,7 @@ class syntax_plugin_task_task extends DokuWiki_Syntax_Plugin {
             }
 
             $class .= '"';
-          
+
             // generate output
             $renderer->doc .= '<div class="vcalendar">'.DOKU_LF
                             . '<fieldset'.$class.'>'.DOKU_LF
@@ -106,7 +106,7 @@ class syntax_plugin_task_task extends DokuWiki_Syntax_Plugin {
             } elseif ($task['date']['due']) {
                 $this->_tablerow('date', $this->_hCalDate($task['date']['due']), $renderer, $due);
             }
-    
+
             // show status update form only to logged in users
             if(isset($_SERVER['REMOTE_USER'])) {
                 $this->_tablerow('status', $status, $renderer);
@@ -117,7 +117,7 @@ class syntax_plugin_task_task extends DokuWiki_Syntax_Plugin {
             '</div>'.DOKU_LF;
 
             return true;
-      
+
         // for metadata renderer
         } elseif ($mode == 'metadata') {
             return true;
@@ -125,7 +125,7 @@ class syntax_plugin_task_task extends DokuWiki_Syntax_Plugin {
 
         return false;
     }
-  
+
     /**
      * Outputs a table row
      */
@@ -140,7 +140,7 @@ class syntax_plugin_task_task extends DokuWiki_Syntax_Plugin {
         $renderer->tablecell_close();
         $renderer->tablerow_close();
     }
-  
+
     /**
      * Loads the helper plugin and gets task data for current ID
      */
@@ -194,7 +194,7 @@ class syntax_plugin_task_task extends DokuWiki_Syntax_Plugin {
     /**
      * Returns the XHTML for the status popup menu.
      * This is the new version using class dokuwiki\Form\Form.
-     * 
+     *
      * @see _statusMenu
      */
     function _statusMenuNew($options, $status) {
@@ -233,7 +233,7 @@ class syntax_plugin_task_task extends DokuWiki_Syntax_Plugin {
     /**
      * Returns the XHTML for the status popup menu.
      * Old function generating all HTML on its own.
-     * 
+     *
      * @see _statusMenu
      */
     function _statusMenuOld($options, $status) {
@@ -298,4 +298,4 @@ class syntax_plugin_task_task extends DokuWiki_Syntax_Plugin {
         return '<abbr class="due" title="'.$this->my->_vdate($date, true).'">' . strftime($onlydate, $date) . '</abbr>';
     }
 }
-// vim:ts=4:sw=4:et:enc=utf-8: 
+// vim:ts=4:sw=4:et:enc=utf-8:
