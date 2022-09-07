@@ -9,19 +9,18 @@ class action_plugin_task extends DokuWiki_Action_Plugin {
     /**
      * register the eventhandlers
      */
-    function register(Doku_Event_Handler $contr) {
-        $contr->register_hook('ACTION_ACT_PREPROCESS',
-                            'BEFORE',
-                            $this,
-                            'handle_act_preprocess',
-                            array());
+    public function register(Doku_Event_Handler $controller) {
+        $controller->register_hook('ACTION_ACT_PREPROCESS', 'BEFORE', $this, 'handleTaskActions', []);
     }
 
     /**
      * Checks if 'newentry' was given as action, if so we
      * do handle the event our self and no further checking takes place
+     *
+     * @param Doku_Event $event
+     * @param $param
      */
-    function handle_act_preprocess(&$event, $param) {
+    public function handleTaskActions($event, $param) {
         if ($event->data != 'newtask' && $event->data != 'changetask') return;
 
         // we can handle it -> prevent others
@@ -29,10 +28,10 @@ class action_plugin_task extends DokuWiki_Action_Plugin {
 
         switch($event->data) {
             case 'newtask':
-                $event->data = $this->_newTask();
+                $event->data = $this->newTask();
                 break;
             case 'changetask':
-                $event->data = $this->_changeTask();
+                $event->data = $this->changeTask();
                 break;
         }
     }
@@ -40,7 +39,7 @@ class action_plugin_task extends DokuWiki_Action_Plugin {
     /**
      * Creates a new task page
      */
-    function _newTask() {
+    protected function newTask() {
         global $ID;
         global $INFO;
 
@@ -53,7 +52,7 @@ class action_plugin_task extends DokuWiki_Action_Plugin {
         // check if we are allowed to create this file
         if ($INFO['perm'] >= AUTH_CREATE) {
 
-            //check if locked by anyone - if not lock for my self      
+            //check if locked by anyone - if not lock for my self
             if ($INFO['locked']) {
                 return 'locked';
             } else {
@@ -88,7 +87,7 @@ class action_plugin_task extends DokuWiki_Action_Plugin {
             return 'show';
         }
     }
-  
+
     /**
      * Adapted version of pageTemplate() function
      */
@@ -99,7 +98,7 @@ class action_plugin_task extends DokuWiki_Action_Plugin {
         $tpl  = io_readFile(DOKU_PLUGIN.'task/_template.txt');
 
         // standard replacements
-        $replace = array(
+        $replace = [
                 '@ID@'   => $id,
                 '@NS@'   => $data['ns'],
                 '@PAGE@' => strtr(noNS($id),'_',' '),
@@ -107,7 +106,7 @@ class action_plugin_task extends DokuWiki_Action_Plugin {
                 '@NAME@' => $INFO['userinfo']['name'],
                 '@MAIL@' => $INFO['userinfo']['mail'],
                 '@DATE@' => $data['date'],
-                );
+        ];
 
         // additional replacements
         $replace['@BACK@']     = $data['back'];
@@ -115,14 +114,14 @@ class action_plugin_task extends DokuWiki_Action_Plugin {
         $replace['@PRIORITY@'] = $data['priority'];
 
         // tag if tag plugin is available
-        if ((@file_exists(DOKU_PLUGIN.'tag/syntax/tag.php')) && (!plugin_isdisabled('tag'))) {
+        if (!plugin_isdisabled('tag')) {
             $replace['@TAG@'] = "\n\n{{tag>}}";
         } else {
             $replace['@TAG@'] = '';
         }
 
         // discussion if discussion plugin is available
-        if ((@file_exists(DOKU_PLUGIN.'discussion/syntax/comments.php')) && (!plugin_isdisabled('discussion'))) {
+        if (!plugin_isdisabled('discussion')) {
             $replace['@DISCUSSION@'] = "~~DISCUSSION~~";
         } else {
             $replace['@DISCUSSION@'] = '';
@@ -132,17 +131,17 @@ class action_plugin_task extends DokuWiki_Action_Plugin {
         $tpl = str_replace(array_keys($replace), array_values($replace), $tpl);
         return $tpl;
     }
-  
+
     /**
      * Changes the status of a task
      */
-    function _changeTask() {
+    protected function changeTask() {
         global $ID;
         global $INFO;
 
         $status = $_REQUEST['status'];
         $status = trim($status);
-        if (!is_numeric($status) || ($status < -1) || ($status > 4)) {
+        if (!is_numeric($status) || $status < -1 || $status > 4) {
             if ($this->getConf('show_error_msg')) {
                 $message = $this->getLang('msg_rcvd_invalid_status');
                 $message = str_replace('%status%', $status, $message);
@@ -177,7 +176,7 @@ class action_plugin_task extends DokuWiki_Action_Plugin {
         if ($INFO['perm'] != AUTH_ADMIN) {
 
             // responsible person can't verify her / his own tasks
-            if ($responsible && ($status == 4)) {
+            if ($responsible && $status == 4) {
                 if ($this->getConf('show_info_msg')) {
                     msg ($this->getLang('msg_responsible_no_verify'));
                 }
@@ -212,11 +211,11 @@ class action_plugin_task extends DokuWiki_Action_Plugin {
                 saveWikiText($ID, $new, $summary, true); // save as minor edit
             }
 
-            $task['user'] = array(
+            $task['user'] = [
                     'id'   => $_SERVER['REMOTE_USER'],
                     'name' => $INFO['userinfo']['name'],
                     'mail' => $INFO['userinfo']['mail'],
-                    );
+            ];
         }
 
         // save .task meta file and clear xhtml cache
@@ -235,4 +234,3 @@ class action_plugin_task extends DokuWiki_Action_Plugin {
         return 'show';
     }
 }
-// vim:ts=4:sw=4:et:enc=utf-8:
