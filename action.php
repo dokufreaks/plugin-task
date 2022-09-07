@@ -152,8 +152,9 @@ class action_plugin_task extends DokuWiki_Action_Plugin {
         }
 
         // load task data
-        if ($my =& plugin_load('helper', 'task')) {
-            $task = $my->readTask($ID);
+        /** @var helper_plugin_task $helper */
+        if ($helper = $this->loadHelper('task', false)) {
+            $task = $helper->readTask($ID);
         } else {
             if ($this->getConf('show_error_msg')) {
                 msg($this->getLang('msg_load_helper_failed'), -1);
@@ -169,7 +170,7 @@ class action_plugin_task extends DokuWiki_Action_Plugin {
             return 'show';
         }
 
-        $responsible = $my->isResponsible($task['user']['name']);
+        $responsible = $helper->isResponsible($task['user']['name']);
 
         // some additional checks if change not performed by an admin
         // FIXME error messages?
@@ -221,13 +222,13 @@ class action_plugin_task extends DokuWiki_Action_Plugin {
         // save .task meta file and clear xhtml cache
         $oldstatus = $task['status'];
         $task['status'] = $status;
-        $my->writeTask($ID, $task);
+        $helper->writeTask($ID, $task);
         $_REQUEST['purge'] = true;
 
         if ($this->getConf('show_success_msg')) {
             $message = $this->getLang('msg_status_changed');
-            $message = str_replace('%status%', $my->statusLabel($status), $message);
-            $message = str_replace('%oldstatus%', $my->statusLabel($oldstatus), $message);
+            $message = str_replace('%status%', $helper->statusLabel($status), $message);
+            $message = str_replace('%oldstatus%', $helper->statusLabel($oldstatus), $message);
             msg($message, 1);
         }
 
