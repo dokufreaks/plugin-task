@@ -133,6 +133,7 @@ class helper_plugin_task extends DokuWiki_Plugin {
                 elseif (($date + 86400 < time()) && ($filter == 'due')) continue;
                 elseif (($date + 86400 > time()) && ($filter == 'overdue')) continue;
             } 
+            $perm = auth_quickaclcheck($id);
 
             $result[$task['key']] = array(
                     'id'       => $id,
