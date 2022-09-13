@@ -8,20 +8,19 @@
 
 class syntax_plugin_task_task extends DokuWiki_Syntax_Plugin {
 
-    var $my   = null;
-    var $task = array();
+    protected $helper = null;
+    protected $task = [];
 
-    function getType() { return 'substition'; }
-    function getSort() { return 305; }
-    function getPType() { return 'block';}
+    public function getType() { return 'substition'; }
+    public function getSort() { return 305; }
+    public function getPType() { return 'block';}
 
-    function connectTo($mode) {
+    public function connectTo($mode) {
         $this->Lexer->addSpecialPattern('~~TASK.*?~~', $mode, 'plugin_task_task');
     }
 
-    function handle($match, $state, $pos, Doku_Handler $handler) {
+    public function handle($match, $state, $pos, Doku_Handler $handler) {
         global $ID;
-        global $INFO;
         global $ACT;
         global $REV;
 
@@ -46,43 +45,50 @@ class syntax_plugin_task_task extends DokuWiki_Syntax_Plugin {
             // $REV prevents overwriting current task information with old revision ones
             if(@file_exists(metaFN($ID, '.task')) && $ACT != 'preview' && !$REV) {
                 $current = $helper->readTask($ID);
-                if (($current['user']['name'] != $user) || ($current['date']['due'] != $date) || ($current['priority'] != $priority)) {
+                if ($current['user']['name'] != $user || $current['date']['due'] != $date || $current['priority'] != $priority) {
                     $helper->writeTask($ID, $task);
                 }
             } elseif ($ACT != 'preview' && !$REV) {
                 $helper->writeTask($ID, $task);
             }
         }
-        return array($user, $date, $priority);
+        return [$user, $date, $priority];
     }
 
-    function render($mode, Doku_Renderer $renderer, $data) {
+    public function render($format, Doku_Renderer $renderer, $data) {
         global $ID;
 
         list($user, $date, $priority) = $data;
 
         // XHTML output
-        if ($mode == 'xhtml') {
+        if ($format == 'xhtml') {
+            /** @var Doku_Renderer_xhtml $renderer */
             $renderer->nocache();
 
             // prepare data
             $this->_loadHelper();
 
-            $task = array();
+            $task = [];
             if(@file_exists(metaFN($ID, '.task'))) {
-                $task = $this->my->readTask($ID);
+                $task = $this->helper->readTask($ID);
             }
 
             $status = $this->_getStatus($user, $sn);
             $due = '';
 
-            if ($date && ($sn < 3)) {
-                if ($date + 86400 < time()) $due = 'overdue';
-                elseif ($date < time()) $due = 'due';
+            if ($date && $sn < 3) {
+                if ($date + 86400 < time()) {
+                    $due = 'overdue';
+                }
+                elseif ($date < time()) {
+                    $due = 'due';
+                }
             }
 
             $class = ' class="vtodo';
-            if ($priority) $class .= ' priority' . $priority;
+            if ($priority) {
+                $class .= ' priority' . $priority;
+            }
             if ($due) {
                 $class .= ' '.$due;
                 $due = ' class="'.$due.'"';
@@ -91,10 +97,10 @@ class syntax_plugin_task_task extends DokuWiki_Syntax_Plugin {
             $class .= '"';
 
             // generate output
-            $renderer->doc .= '<div class="vcalendar">'.DOKU_LF
-                            . '<fieldset'.$class.'>'.DOKU_LF
-                            . '<legend>'.$this->_icsDownload().$this->getLang('task').'</legend>'.DOKU_LF
-                            . '<table class="blind">'.DOKU_LF;
+            $renderer->doc .= '<div class="vcalendar">'
+                            . '<fieldset'.$class.'>'
+                            . '<legend>'.$this->_icsDownload().$this->getLang('task').'</legend>'
+                            . '<table class="blind">';
 
             if ($user) {
                 $this->_tablerow('user', $this->_hCalUser($user), $renderer, '', 'organizer');
@@ -120,7 +126,7 @@ class syntax_plugin_task_task extends DokuWiki_Syntax_Plugin {
             return true;
 
         // for metadata renderer
-        } elseif ($mode == 'metadata') {
+        } elseif ($format == 'metadata') {
             return true;
         }
 
@@ -129,13 +135,23 @@ class syntax_plugin_task_task extends DokuWiki_Syntax_Plugin {
 
     /**
      * Outputs a table row
+     *
+     * @param string $header id of header translation string
+     * @param string $data content of table cell
+     * @param Doku_Renderer_xhtml $renderer
+     * @param string $trclass class of row
+     * @param string $tdclass class of cell
      */
-    function _tablerow($header, $data, &$renderer, $trclass = '', $tdclass = '') {
-        if ($tdclass) $tdclass = ' class="'.$tdclass.'"';
+    protected function _tablerow($header, $data, $renderer, $trclass = '', $tdclass = '') {
+        if ($tdclass) {
+            $tdclass = ' class="'.$tdclass.'"';
+        }
 
-        $renderer->doc .= '<tr'.$trclass.'>'.DOKU_LF;
+        $renderer->doc .= '<tr'.$trclass.'>';
         $renderer->tableheader_open(1, '');
-        if ($header) $renderer->doc .= hsc($this->getLang($header)).':';
+        if ($header) {
+            $renderer->doc .= hsc($this->getLang($header)).':';
+        }
         $renderer->tableheader_close();
         $renderer->doc .= '<td'.$tdclass.'>'.$data;
         $renderer->tablecell_close();
@@ -145,46 +161,52 @@ class syntax_plugin_task_task extends DokuWiki_Syntax_Plugin {
     /**
      * Loads the helper plugin and gets task data for current ID
      */
-    function _loadHelper() {
+    protected function _loadHelper() {
         global $ID;
-        $this->my =& plugin_load('helper', 'task');
-        if (!is_object($this->my)) return false;
-        $this->task = $this->my->readTask($ID);
-        return $true;
+        $this->helper = plugin_load('helper', 'task');
+        if (!is_object($this->helper)) {
+            return false;
+        }
+        $this->task = $this->helper->readTask($ID);
+        return true;
     }
 
     /**
      * Returns the status cell contents
      */
-    function _getStatus($user, &$status) {
+    protected function _getStatus($user, &$status) {
         global $INFO;
 
         $ret = '';
         $status = $this->task['status'];
-        $responsible = $this->my->_isResponsible($user);
+        $responsible = $this->helper->_isResponsible($user);
 
         if ($INFO['perm'] == AUTH_ADMIN) {
-            $ret = $this->_statusMenu(array(-1, 0, 1, 2, 3, 4), $status);
+            $ret = $this->_statusMenu([-1, 0, 1, 2, 3, 4], $status);
         } elseif ($responsible) {
-            if ($status < 3) $ret = $this->_statusMenu(array(-1, 0, 1, 2, 3), $status);
+            if ($status < 3) {
+                $ret = $this->_statusMenu([-1, 0, 1, 2, 3], $status);
+            }
         } else {
             if ($status == 0) {
-                $ret = $this->_statusMenu(array(0, 1), $status);
+                $ret = $this->_statusMenu([0, 1], $status);
             } elseif ($status == 3) {
-                $ret = $this->_statusMenu(array(2, 3, 4), $status);
+                $ret = $this->_statusMenu([2, 3, 4], $status);
             }
         }
 
-        if (!$ret && $this->my) $ret = $this->my->statusLabel($status);
+        if (!$ret && $this->helper) {
+            $ret = $this->helper->statusLabel($status);
+        }
 
-        return '<abbr class="status" title="'.$this->my->_vstatus($status).'">'. $ret .'</abbr>';
+        return '<abbr class="status" title="'.$this->helper->_vstatus($status).'">'. $ret .'</abbr>';
     }
 
     /**
      * Returns the XHTML for the status drop down list.
      * Just forwards call to the old or new function.
      */
-    function _statusMenu($options, $status) {
+    protected function _statusMenu($options, $status) {
         if (class_exists('dokuwiki\Form\Form')) {
             return $this->_statusMenuNew($options, $status);
         } else {
@@ -198,8 +220,8 @@ class syntax_plugin_task_task extends DokuWiki_Syntax_Plugin {
      *
      * @see _statusMenu
      */
-    function _statusMenuNew($options, $status) {
-        global $ID, $lang;
+    protected function _statusMenuNew($options, $status) {
+        global $ID;
 
         $form = new dokuwiki\Form\Form(array('id' => 'task__changetask_form'));
         $pos = 1;
@@ -211,20 +233,19 @@ class syntax_plugin_task_task extends DokuWiki_Syntax_Plugin {
         $form->setHiddenField ('do', 'changetask');
 
         // Select status from drop down list
-        $dropDownOptions = array();
-        $selected = NULL;
-        $value = 0;
+        $dropDownOptions = [];
+        $selected = null;
         foreach ($options as $option) {
             if ($status == $option) {
                 $selected = $option.' ';
             }
-            $dropDownOptions [$option.' '] = $this->my->statusLabel($option);
+            $dropDownOptions [$option.' '] = $this->helper->statusLabel($option);
         }
-        $input = $form->addDropdown('status', $dropDownOptions, NULL, $pos++);
+        $input = $form->addDropdown('status', $dropDownOptions, null, $pos++);
         $input->val($selected);
 
         // Add button
-        $form->addButton(NULL, $this->getLang('btn_change'), $pos++);
+        $form->addButton(null, $this->getLang('btn_change'), $pos++);
 
         $form->addHTML('</div>', $pos++);
 
@@ -237,7 +258,7 @@ class syntax_plugin_task_task extends DokuWiki_Syntax_Plugin {
      *
      * @see _statusMenu
      */
-    function _statusMenuOld($options, $status) {
+    protected function _statusMenuOld($options, $status) {
         global $ID;
         global $lang;
 
@@ -249,8 +270,10 @@ class syntax_plugin_task_task extends DokuWiki_Syntax_Plugin {
 
         foreach ($options as $option) {
             $ret .= '<option value="'.$option.'"';
-            if ($status == $option) $ret .= ' selected="selected"';
-            $ret .= '>'.$this->my->statusLabel($option).'</option>';
+            if ($status == $option) {
+                $ret .= ' selected="selected"';
+            }
+            $ret .= '>'.$this->helper->statusLabel($option).'</option>';
         }
 
         $ret .= '</select>';
@@ -264,7 +287,7 @@ class syntax_plugin_task_task extends DokuWiki_Syntax_Plugin {
     /**
      * Returns the download link for the iCal file
      */
-    function _icsDownload() {
+    protected function _icsDownload() {
         global $ID;
         global $INFO;
 
@@ -283,20 +306,19 @@ class syntax_plugin_task_task extends DokuWiki_Syntax_Plugin {
     /**
      * Returns the organizer in hCalendar format as hCard
      */
-    function _hCalUser($user) {
+    protected function _hCalUser($user) {
         return '<span class="vcard"><span class="fn">' . hsc($user) . '</span></span>';
     }
 
     /**
      * Returns the date in hCalendar format
      */
-    function _hCalDate($date) {
+    protected function _hCalDate($date) {
         global $conf;
 
         // strip time from preferred date format
-        $onlydate = preg_replace('#%[HIMprRST]|:#', '', ($conf['dformat']));
+        $onlydate = preg_replace('#%[HIMprRST]|:#', '', $conf['dformat']);
 
-        return '<abbr class="due" title="'.$this->my->_vdate($date, true).'">' . strftime($onlydate, $date) . '</abbr>';
+        return '<abbr class="due" title="'.$this->helper->_vdate($date, true).'">' . strftime($onlydate, $date) . '</abbr>';
     }
 }
-// vim:ts=4:sw=4:et:enc=utf-8:

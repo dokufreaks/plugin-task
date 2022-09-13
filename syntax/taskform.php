@@ -7,7 +7,10 @@
  */
 
 class syntax_plugin_task_taskform extends DokuWiki_Syntax_Plugin {
-    protected $helper = NULL;
+    /**
+     * @var helper_plugin_task
+     */
+    protected $helper = null;
 
     /**
      * Constructor. Loads helper plugin.
@@ -16,15 +19,15 @@ class syntax_plugin_task_taskform extends DokuWiki_Syntax_Plugin {
         $this->helper = plugin_load('helper', 'task');
     }
 
-    function getType() { return 'substition'; }
-    function getPType() { return 'block'; }
-    function getSort() { return 306; }
+    public function getType() { return 'substition'; }
+    public function getPType() { return 'block'; }
+    public function getSort() { return 306; }
 
-    function connectTo($mode) {
+    public function connectTo($mode) {
         $this->Lexer->addSpecialPattern('\{\{task>form>.+?\}\}', $mode, 'plugin_task_taskform');
     }
 
-    function handle($match, $state, $pos, Doku_Handler $handler) {
+    public function handle($match, $state, $pos, Doku_Handler $handler) {
         global $ID;
 
         // strip {{task>form> from start and }} from end
@@ -32,30 +35,35 @@ class syntax_plugin_task_taskform extends DokuWiki_Syntax_Plugin {
         list($ns, $flags) = array_pad(explode('&', $match, 2), 2,'');
         $flags = explode('&', $flags);
 
-        if (($ns == '*') || ($ns == ':')) $ns = '';
-        elseif ($ns == '.') $ns = getNS($ID);
-        else $ns = cleanID($ns);
+        if ($ns == '*' || $ns == ':') {
+            $ns = '';
+        } elseif ($ns == '.') {
+            $ns = getNS($ID);
+        } else {
+            $ns = cleanID($ns);
+        }
 
-        $selectUserGroup = NULL;
+        $selectUserGroup = null;
         foreach ($flags as $flag) {
             if (substr($flag, 0, 16) == 'selectUserGroup=') {
                 $selectUserGroup = substr($flag, 16);
                 $selectUserGroup = trim($selectUserGroup, '"');
             }
         }
-        return array($ns, $flags, $selectUserGroup);
+        return [$ns, $flags, $selectUserGroup];
     }
 
-    function render($mode, Doku_Renderer $renderer, $data) {
-        if ($mode != 'xhtml') {
-            false;
+    public function render($format, Doku_Renderer $renderer, $data) {
+        if ($format != 'xhtml') {
+            return false;
         }
 
         list($ns, $flags, $selectUserGroup) = $data;
 
         $selectUser = in_array('selectUser', $flags);
-        if ($this->helper) $renderer->doc .= $this->helper->newTaskForm($ns, $selectUser, $selectUserGroup);
+        if ($this->helper) {
+            $renderer->doc .= $this->helper->newTaskForm($ns, $selectUser, $selectUserGroup);
+        }
         return true;
     }
 }
-// vim:et:ts=4:sw=4:enc=utf-8:

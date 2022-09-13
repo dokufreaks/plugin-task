@@ -79,6 +79,22 @@ class helper_plugin_task extends DokuWiki_Plugin {
 
     /**
      * Returns an array of task pages, sorted by priority
+     *
+     * @param string $ns only tasks from this namespace including its subnamespaces
+     * @param int|null $num max number of returned rows, null is all
+     * @param string $filter 'all', 'rejected', 'accepted', 'started', 'done', 'verified', 'my', 'new', 'due', 'overdue'
+     * @param string $user show task of given user FIXME not used??
+     * @return array with the rows:
+     *  string sortkey => [
+     *      'id'       => string page id,
+     *      'date'     => int timestamp of due date,
+     *      'user'     => string name of user,
+     *      'status'   => string translated status
+     *      'priority' => int in range 0 to 4
+     *      'perm'     => int ACL permission
+     *      'file'     => string .task metadata file
+     *      'exists'   => true
+     * ]
      */
     public function getTasks($ns, $num = null, $filter = '', $user = null) {
         global $conf;
@@ -167,10 +183,30 @@ class helper_plugin_task extends DokuWiki_Plugin {
 
     /**
      * Reads the .task metafile
+     *
+     * @param string $id page id
+     * @return array|false returns data array, otherwise false,
+     *  with:
+     *   'date' => [
+     *      'created' => int,
+     *      'modified' => int,
+     *      'due' => int,
+     *      'completed' => int
+     *   ],
+     *   'user' => [
+     *      'name' => ...
+     *   ],
+     *   'file' => string,
+     *   'exists' => bool
+     *   'status' => int,
+     *   'priority' => string
+     *   'vtodo' => string vtodo for iCal file download,
+     *   'key' => string sortkey based at priority and creation date
      */
     public function readTask($id) {
         $file = metaFN($id, '.task');
         if (!@file_exists($file)) {
+            //old format? reset stored metadata and replace by .task metadata file
             $data = p_get_metadata($id, 'task');
             if (is_array($data)) {
                 $data['date'] = ['due' => $data['date']];
@@ -192,7 +228,29 @@ class helper_plugin_task extends DokuWiki_Plugin {
     }
 
     /**
-     * Saves the .task metafile
+     * Saves provided data to the .task metafile
+     *
+     * @param string $id page id
+     * @param array $data with at least:
+     *   'file' => string,
+     *   'exists' => bool,
+     *   'date' => [
+     *       'created' => int,
+     *       'modified' => int,
+     *       'due' => int,
+     *       'completed' => int
+     *    ] or string due date (old?),
+     *   'user' => [
+     *       'name' string
+     *   ] or string name (old?),
+     *   'status' => int,
+     *   'priority' => string
+     *
+     *  key created before storing:
+     *   'vtodo' => string vtodo for iCal file download,
+     *   'key' => string sortkey based at priority and creation date
+     *
+     * @return bool success?
      */
     public function writeTask($id, $data) {
         if (!is_array($data)) {
@@ -206,6 +264,7 @@ class helper_plugin_task extends DokuWiki_Plugin {
 
         // set creation or modification time
         if (!is_array($data['date'])) {
+            //old format?
             $data['date'] = ['due' => $data['date']];
         }
         if (!@file_exists($file) || !$data['date']['created']) {
@@ -215,12 +274,13 @@ class helper_plugin_task extends DokuWiki_Plugin {
         }
 
         if (!is_array($data['user'])) {
+            //old format?
             $data['user'] = ['name' => $data['user']];
         }
 
         if (!isset($data['status'])) {    // make sure we don't overwrite status
-            $current = unserialize(io_readFile($file, false));
-            $data['status'] = $current['status'];
+            $currentTask = unserialize(io_readFile($file, false));
+            $data['status'] = $currentTask['status'];
         } elseif ($data['status'] == 3) { // set task completion time
             $data['date']['completed'] = time();
         }
@@ -241,6 +301,9 @@ class helper_plugin_task extends DokuWiki_Plugin {
 
     /**
      * Returns the label of a status
+     *
+     * @param int $status
+     * @return string
      */
     public function statusLabel($status) {
         switch ($status) {
@@ -261,6 +324,9 @@ class helper_plugin_task extends DokuWiki_Plugin {
 
     /**
      * Returns the label of a priority
+     *
+     * @param int $priority
+     * @return string
      */
     public function priorityLabel($priority) {
         switch ($priority) {
@@ -276,7 +342,13 @@ class helper_plugin_task extends DokuWiki_Plugin {
     }
 
     /**
-     * Is the given task assigned to the current user?
+     * Is the given task user assigned to the current logged-in user?
+     *
+     * @param string|array $user string name of user, or array with:
+     *  'id' => string,
+     *  'name' => string
+     *
+     * @return bool
      */
     public function isResponsible($user) {
         global $INFO, $INPUT;
@@ -288,7 +360,7 @@ class helper_plugin_task extends DokuWiki_Plugin {
         if (
             isset($user['id']) && $user['id'] == $INPUT->server->str('REMOTE_USER')
             || isset($user['name']) && $user['name'] == $INFO['userinfo']['name']
-            || $user == $INFO['userinfo']['name']
+            || $user == $INFO['userinfo']['name'] //was old format?
         ) {
             return true;
         }
@@ -298,6 +370,9 @@ class helper_plugin_task extends DokuWiki_Plugin {
 
     /**
      * Interpret date with strtotime()
+     *
+     * @param string $str
+     * @return false|int|null timestamp or null
      */
     public function interpretDate($str) {
         if (!$str) {
@@ -334,7 +409,7 @@ class helper_plugin_task extends DokuWiki_Plugin {
     /**
      * Sends a notify mail on new or changed task
      *
-     * @param  array  $task  data array of the task
+     * @param array $task data array of the task
      *
      * @author Andreas Gohr <andi@splitbrain.org>
      * @author Esther Brunner <wikidesign@gmail.com>
@@ -382,6 +457,10 @@ class helper_plugin_task extends DokuWiki_Plugin {
 
     /**
      * Generates a VTODO section for iCal file download
+     *
+     * @param string $id page id
+     * @param array $task data array of the task
+     * @return string
      */
     protected function vtodo($id, $task) {
         if (!defined('CRLF')) define('CRLF', "\r\n");
@@ -425,6 +504,9 @@ class helper_plugin_task extends DokuWiki_Plugin {
 
     /**
      * Encodes vCard / iCal special characters
+     *
+     * @param string|array $string
+     * @return array|string|string[]
      */
     protected function vsc($string) {
         $search = ["\\", ",", ";", "\n", "\r"];
@@ -434,6 +516,10 @@ class helper_plugin_task extends DokuWiki_Plugin {
 
     /**
      * Generates YYYYMMDD"T"hhmmss"Z" UTC time date format (ISO 8601 / RFC 3339)
+     *
+     * @param int $date timestamp
+     * @param bool $extended other date format
+     * @return false|string
      */
     protected function vdate($date, $extended = false) {
         if ($extended) {
@@ -445,6 +531,9 @@ class helper_plugin_task extends DokuWiki_Plugin {
 
     /**
      * Returns VTODO status
+     *
+     * @param int $status
+     * @return string
      */
     protected function vstatus($status) {
         switch ($status) {
@@ -463,6 +552,9 @@ class helper_plugin_task extends DokuWiki_Plugin {
 
     /**
      * Returns VTODO categories
+     *
+     * @param string|array $cat
+     * @return string
      */
     protected function vcategories($cat) {
         if (!is_array($cat)) {
@@ -473,6 +565,9 @@ class helper_plugin_task extends DokuWiki_Plugin {
 
     /**
      * Returns access classification for VTODO
+     *
+     * @param string $id page id
+     * @return string
      */
     protected function vclass($id) {
         if (auth_quickaclcheck($id) >= AUTH_READ) {
