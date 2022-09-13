@@ -28,10 +28,10 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
         global $ID;
 
         $match = substr($match, 8, -2); // strip {{topic> from start and }} from end
-        list($match, $flags) = explode('&', $match, 2);
+        list($match, $flags) = array_pad(explode('&', $match, 2),2,'');
         $flags = explode('&', $flags);
-        list($match, $refine) = explode(' ', $match, 2);
-        list($ns, $filter) = explode('?', $match, 2);
+        list($match, $refine) = array_pad(explode(' ', $match, 2),2,'');
+        list($ns, $filter) = array_pad(explode('?', $match, 2),2,'');
 
         if (($ns == '*') || ($ns == ':')) $ns = '';
         elseif ($ns == '.') $ns = getNS($ID);

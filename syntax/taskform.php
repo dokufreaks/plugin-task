@@ -29,7 +29,7 @@ class syntax_plugin_task_taskform extends DokuWiki_Syntax_Plugin {
 
         // strip {{task>form> from start and }} from end
         $match = substr($match, 12, -2);
-        list($ns, $flags) = explode('&', $match, 2);
+        list($ns, $flags) = array_pad(explode('&', $match, 2), 2,'');
         $flags = explode('&', $flags);
 
         if (($ns == '*') || ($ns == ':')) $ns = '';
