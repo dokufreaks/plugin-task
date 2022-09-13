@@ -521,7 +521,7 @@ class helper_plugin_task extends DokuWiki_Plugin {
      * @param bool $extended other date format
      * @return false|string
      */
-    protected function vdate($date, $extended = false) {
+    public function vdate($date, $extended = false) {
         if ($extended) {
             return strftime('%Y-%m-%dT%H:%M:%SZ', $date);
         } else {
@@ -535,7 +535,7 @@ class helper_plugin_task extends DokuWiki_Plugin {
      * @param int $status
      * @return string
      */
-    protected function vstatus($status) {
+    public function vstatus($status) {
         switch ($status) {
             case -1:
                 return 'CANCELLED';
