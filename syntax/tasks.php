@@ -291,7 +291,7 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
             } else {
                 $opt = array();
                 $opt['first']  = $perpage * ($i - 1);
-                $opt['filter'] = $filer;
+                $opt['filter'] = $filter;
                 if(isset($_REQUEST['view_user'])) {
                     $user = array();
                     $user['id'] = $_REQUEST['view_user'];
