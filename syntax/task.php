@@ -70,7 +70,7 @@ class syntax_plugin_task_task extends DokuWiki_Syntax_Plugin {
      * @return boolean rendered correctly?
      */
     public function render($format, Doku_Renderer $renderer, $data) {
-        global $ID;
+        global $ID, $INPUT;
 
         list($user, $date, $priority) = $data;
 
@@ -87,10 +87,10 @@ class syntax_plugin_task_task extends DokuWiki_Syntax_Plugin {
                 $task = $this->helper->readTask($ID);
             }
 
-            $status = $this->getStatus($user, $sn);
+            $status = $this->getStatus($user, $statusNumber);
             $due = '';
 
-            if ($date && $sn < 3) {
+            if ($date && $statusNumber < 3) {
                 if ($date + 86400 < time()) {
                     $due = 'overdue';
                 }
@@ -129,7 +129,7 @@ class syntax_plugin_task_task extends DokuWiki_Syntax_Plugin {
             }
 
             // show status update form only to logged in users
-            if(isset($_SERVER['REMOTE_USER'])) {
+            if($INPUT->server->has('REMOTE_USER')) {
                 $this->renderTableRow('status', $status, $renderer);
             }
 
@@ -247,9 +247,8 @@ class syntax_plugin_task_task extends DokuWiki_Syntax_Plugin {
         global $ID;
 
         $form = new dokuwiki\Form\Form(array('id' => 'task__changetask_form'));
-        $pos = 1;
 
-        $form->addHTML('<div class="no">', $pos++);
+        $form->addHTML('<div class="no">');
 
         // Set hidden fields
         $form->setHiddenField ('id', $ID);
@@ -262,15 +261,15 @@ class syntax_plugin_task_task extends DokuWiki_Syntax_Plugin {
             if ($status == $option) {
                 $selected = $option.' ';
             }
-            $dropDownOptions [$option.' '] = $this->helper->statusLabel($option);
+            $dropDownOptions[$option.' '] = $this->helper->statusLabel($option);
         }
-        $input = $form->addDropdown('status', $dropDownOptions, null, $pos++);
+        $input = $form->addDropdown('status', $dropDownOptions, null);
         $input->val($selected);
 
         // Add button
-        $form->addButton(null, $this->getLang('btn_change'), $pos++);
+        $form->addButton(null, $this->getLang('btn_change'));
 
-        $form->addHTML('</div>', $pos++);
+        $form->addHTML('</div>');
 
         return $form->toHTML();
     }
@@ -314,11 +313,10 @@ class syntax_plugin_task_task extends DokuWiki_Syntax_Plugin {
      * @return string html of link
      */
     protected function htmlIcsDownloadLink() {
-        global $ID;
-        global $INFO;
+        global $ID, $INFO, $INPUT;
 
-        $uid   = hsc($ID.'@'.$_SERVER['SERVER_NAME']);
-        $title = hsc($INFO['meta']['title']);
+        $uid   = hsc($ID.'@'.$INPUT->server->str('SERVER_NAME'));
+        $title = hsc($INFO['meta']['title'] ?? '');
         $link  = DOKU_BASE.'lib/plugins/task/ics.php?id='.$ID;
         $src   = DOKU_BASE.'lib/plugins/task/images/ics.gif';
 

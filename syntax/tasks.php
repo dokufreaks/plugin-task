@@ -59,23 +59,26 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
      * @return bool rendered correctly? (however, returned value is not used at the moment)
      */
     public function render($format, Doku_Renderer $renderer, $data) {
-        global $conf;
+        global $conf, $INPUT;
 
         list($ns, $filter, $flags, $refine) = $data;
 
+        $select = false;
         if (!$filter || $filter == 'select') {
             $select = true;
-            $filter = trim($_REQUEST['filter']);
+            $filter = trim($INPUT->str('filter'));
         }
         $filter = strtolower($filter);
-        $filters = $this->_viewFilters();
+        $filters = $this->viewFilters();
         if (!in_array($filter, $filters)) {
             $filter = 'open';
         }
-        if(isset($_REQUEST['view_user'])) {
-            $user = $_REQUEST['view_user'];
+        $user = ''; //FIXME getTasks() does not use $user...
+        if($INPUT->has('view_user')) {
+            $user = $INPUT->str('view_user');
         }
 
+        $pages = [];
         if ($this->helper) {
             $pages = $this->helper->getTasks($ns, null, $filter, $user);
         }
@@ -96,7 +99,7 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
             }
             $renderer->nocache();
             if($select) {
-                $renderer->doc .= $this->_viewMenu($filter);
+                $renderer->doc .= $this->viewMenu($filter);
             }
             if(auth_quickaclcheck($ns.':*') >= AUTH_CREATE) {
                 if(!in_array('noform', $flags)) {
@@ -111,13 +114,11 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
         // prepare pagination
         $c = count($pages);
         $perpage = ($conf['recent'] != 0) ? $conf['recent'] : 20; // prevent division by zero
+        $numOfPages = $currentPage = 1;
         if ($c > $perpage) {
             $numOfPages = ceil($c / $perpage);
-            $first = $_REQUEST['first'];
-            if (!is_numeric($first)) {
-                $first = 0;
-            }
-            $currentPage = round($first / $perpage) + 1;
+            $first = $INPUT->int('first');
+            $currentPage = round($first / $perpage) + 1; //TODO check 14/20=0.7==>1, 1+1=2?
             $pages = array_slice($pages, $first, $perpage);
         }
 
@@ -127,8 +128,8 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
             $renderer->nocache();
 
             // show form to create a new task?
-            $perm_create = (auth_quickaclcheck($ns.':*') >= AUTH_CREATE);
-            if($perm_create && ($this->getConf('tasks_formposition') == 'top')) {
+            $hasCreatePermission = auth_quickaclcheck($ns.':*') >= AUTH_CREATE;
+            if($hasCreatePermission && $this->getConf('tasks_formposition') == 'top') {
                 if(!in_array('noform', $flags)) {
                     if ($this->helper) {
                         $renderer->doc .= $this->helper->newTaskForm($ns);
@@ -145,7 +146,7 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
 
             // show view filter popup if not
             if ($select) {
-                $renderer->doc .= $this->_viewMenu($filter);
+                $renderer->doc .= $this->viewMenu($filter);
             }
 
             // prepare pagelist columns
@@ -166,10 +167,10 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
                 $pagelist->addPage($page);
             }
             $renderer->doc .= $pagelist->finishList();
-            $renderer->doc .= $this->_paginationLinks($numOfPages, $currentPage, $filter);
+            $renderer->doc .= $this->paginationLinks($numOfPages, $currentPage, $filter);
 
             // show form to create a new task?
-            if($perm_create && ($this->getConf('tasks_formposition') == 'bottom')) {
+            if($hasCreatePermission && ($this->getConf('tasks_formposition') == 'bottom')) {
                 if(!in_array('noform', $flags)) {
                     if ($this->helper) $renderer->doc .= $this->helper->newTaskForm($ns);
                 }
@@ -195,11 +196,11 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
      * Show a popup to select the task view filter.
      * Just forwards call to the old or new function.
      */
-    protected function _viewMenu($filter) {
+    protected function viewMenu($filter) {
         if (class_exists('dokuwiki\Form\Form')) {
-            return $this->_viewMenuNew($filter);
+            return $this->viewMenuNew($filter);
         } else {
-            return $this->_viewMenuOld($filter);
+            return $this->viewMenuOld($filter);
         }
     }
 
@@ -207,12 +208,12 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
      * Show a popup to select the task view filter.
      * This is the new version using class dokuwiki\Form\Form.
      *
-     * @see _viewMenu
+     * @see viewMenu
      */
-    protected function _viewMenuNew($filter) {
-        global $ID;
+    protected function viewMenuNew($filter) {
+        global $ID, $INPUT;
 
-        $options = $this->_viewFilters();
+        $options = $this->viewFilters();
 
         $form = new dokuwiki\Form\Form(['id' => 'task__changeview_form']);
         $pos = 1;
@@ -238,11 +239,11 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
 
         $form->addHTML('</label>', $pos++);
 
-        if(isset($_SERVER['REMOTE_USER'])) {
+        if($INPUT->server->has('REMOTE_USER')) {
             $form->addHTML('<label class="simple"><span>'.$this->getLang('view_user').':</span>', $pos++);
             $input = $form->addCheckbox('view_user', null, $pos++);
-            $input->attr('value', $_SERVER['REMOTE_USER']);
-            if ($_REQUEST['view_user']) {
+            $input->attr('value', $INPUT->server->str('REMOTE_USER'));
+            if ($INPUT->str('view_user')) {
                 $input->attr('checked', 'checked');
             }
             $form->addHTML('</label>', $pos++);
@@ -262,12 +263,12 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
      * Show a popup to select the task view filter.
      * Old function generating all HTML on its own.
      *
-     * @see _viewMenu
+     * @see viewMenu
      */
-    protected function _viewMenuOld($filter) {
-        global $ID, $lang;
+    protected function viewMenuOld($filter) {
+        global $ID, $lang, $INPUT;
 
-        $options = $this->_viewFilters();
+        $options = $this->viewFilters();
 
         $ret  = '<div class="task_viewmenu">';
         $ret .= '<form id="task__changeview_form" method="post" action="'.script().'" accept-charset="'.$lang['encoding'].'">';
@@ -288,10 +289,10 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
         $ret .= '</select>';
         $ret .= '</label>';
 
-        if(isset($_SERVER['REMOTE_USER'])) {
+        if($INPUT->server->has('REMOTE_USER')) {
             $ret .= '<label class="simple"><span>'.$this->getLang('view_user').':</span>';
-            $ret .= '<input type="checkbox" name="view_user" value="' . $_SERVER['REMOTE_USER'] . '"';
-            $ret .= ($_REQUEST['view_user']) ? ' checked="checked"' : '';
+            $ret .= '<input type="checkbox" name="view_user" value="' . $INPUT->server->str('REMOTE_USER') . '"';
+            $ret .= $INPUT->str('view_user') ? ' checked="checked"' : '';
             $ret .= '/></label>';
         }
 
@@ -304,11 +305,12 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
    /**
     * Returns an array of available view filters for the task list
     */
-    protected function _viewFilters() {
-        if (!$_SERVER['REMOTE_USER']) {
-            $filters = ['all', 'open', 'done'];
-        } else {
+    protected function viewFilters() {
+        global $INPUT;
+        if ($INPUT->server->has('REMOTE_USER')) {
             $filters = ['all', 'open', 'new', 'done', 'my', 'rejected', 'started', 'accepted', 'verified'];
+        } else {
+            $filters = ['all', 'open', 'done'];
         }
         if ($this->getConf('datefield')) {
             $filters[] = 'due';
@@ -318,10 +320,15 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
     }
 
     /**
-    * Returns pagination links if more than one page
-    */
-    protected function _paginationLinks($num, $cur, $filter) {
-        global $ID, $conf;
+     * Returns html of pagination links if more than one page
+     *
+     * @param int $num number of pagination pages
+     * @param int $cur current pagination page no
+     * @param string $filter current active filter
+     * @return string html of pagination links
+     */
+    protected function paginationLinks($num, $cur, $filter) {
+        global $ID, $conf, $INPUT;
 
         if (!is_numeric($num) || $num < 2) {
             return '';
@@ -333,17 +340,17 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
             if ($i == $cur) {
                 $ret[] = '<strong>'.$i.'</strong>';
             } else {
-                $opt = [];
-                $opt['first']  = $perpage * ($i - 1);
-                $opt['filter'] = $filter;
-                if(isset($_REQUEST['view_user'])) {
+                $param = [];
+                $param['first']  = $perpage * ($i - 1);
+                $param['filter'] = $filter;
+                if($INPUT->has('view_user')) {
                     $user = [];
-                    $user['id'] = $_REQUEST['view_user'];
+                    $user['id'] = $INPUT->str('view_user');
                     if($this->helper->isResponsible($user)) {
-                        $opt['view_user'] = $_REQUEST['view_user'];
+                        $param['view_user'] = $INPUT->str('view_user');
                     }
                 }
-                $ret[] = '<a href="'.wl($ID, $opt).'" class="wikilink1" title="'.$i.'">'.$i.'</a>';
+                $ret[] = '<a href="'.wl($ID, $param).'" class="wikilink1" title="'.$i.'">'.$i.'</a>';
             }
         }
         return '<div class="centeralign">'.

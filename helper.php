@@ -97,13 +97,11 @@ class helper_plugin_task extends DokuWiki_Plugin {
      * ]
      */
     public function getTasks($ns, $num = null, $filter = '', $user = null) {
-        global $conf;
+        global $conf, $INPUT;
 
         if (!$filter) {
-            $filter = strtolower($_REQUEST['filter']);
+            $filter = strtolower($INPUT->str('filter'));
         }
-
-        $dir = $conf['datadir'].($ns ? '/'.str_replace(':', '/', $ns): '');
 
         // returns the list of pages in the given namespace and it's subspaces
         $items = [];
@@ -153,9 +151,9 @@ class helper_plugin_task extends DokuWiki_Plugin {
 
             // filter is 'due' or 'overdue'
             if (in_array($filter, ['due', 'overdue'])) {
-                if (!$date || ($date > time()) || ($task['status'] > 2)) continue;
-                elseif (($date + 86400 < time()) && ($filter == 'due')) continue;
-                elseif (($date + 86400 > time()) && ($filter == 'overdue')) continue;
+                if (!$date || $date > time() || $task['status'] > 2) continue;
+                elseif ($date + 86400 < time() && $filter == 'due') continue;
+                elseif ($date + 86400 > time() && $filter == 'overdue') continue;
             }
             $perm = auth_quickaclcheck($id);
 
@@ -434,7 +432,7 @@ class helper_plugin_task extends DokuWiki_Plugin {
         $text = str_replace('@PAGE@', $ID, $text);
         $text = str_replace('@TITLE@', $conf['title'], $text);
         if(!empty($task['date']['due'])) {
-            $dformat = preg_replace('#%[HIMprRST]|:#', '', ($conf['dformat']));
+            $dformat = preg_replace('#%[HIMprRST]|:#', '', $conf['dformat']);
             $text    = str_replace('@DATE@', strftime($dformat, $task['date']['due']), $text);
         } else {
             $text = str_replace('@DATE@', '', $text);
@@ -452,7 +450,7 @@ class helper_plugin_task extends DokuWiki_Plugin {
             $subject .= $this->getLang('mail_changedtask');
         }
 
-        mail_send($to, $subject, $text, $conf['mailfrom'], '', $bcc);
+        mail_send($to, $subject, $text, $conf['mailfrom'], '', $bcc); //FIXME replace
     }
 
     /**
@@ -607,10 +605,9 @@ class helper_plugin_task extends DokuWiki_Plugin {
         global $ID, $lang, $INFO, $auth;
 
         $form = new dokuwiki\Form\Form(['id' => 'task__newtask_form']);
-        $pos = 1;
 
         // Open fieldset
-        $form->addFieldsetOpen($this->getLang('newtask'), $pos++);
+        $form->addFieldsetOpen($this->getLang('newtask'));
 
         // Set hidden fields
         $form->setHiddenField ('id', $ID);
@@ -618,15 +615,15 @@ class helper_plugin_task extends DokuWiki_Plugin {
         $form->setHiddenField ('ns', $ns);
 
         // Set input filed for task title
-        $input = $form->addTextInput('title', null, $pos++);
+        $input = $form->addTextInput('title', null);
         $input->attr('id', 'task__newtask_title');
         $input->attr('size', '40');
 
         // Set input field for user (either text field or drop down box)
-        $form->addHTML('<table class="blind"><tr><th>'.$this->getLang('user').':</th><td>', $pos++);
+        $form->addHTML('<table class="blind"><tr><th>'.$this->getLang('user').':</th><td>');
         if(!$selectUser) {
             // Old way input field
-            $input = $form->addTextInput('user', null, $pos++);
+            $input = $form->addTextInput('user', null);
             $input->attr('value', hsc($INFO['userinfo']['name']));
         } else {
             // Select user from drop down list
@@ -638,17 +635,17 @@ class helper_plugin_task extends DokuWiki_Plugin {
                     $options [] = $curr_user['name'];
                 }
             }
-            $input = $form->addDropdown('user', $options, null, $pos++);
+            $input = $form->addDropdown('user', $options, null);
             $input->val($INFO['userinfo']['name']);
         }
-        $form->addHTML('</td></tr>', $pos++);
+        $form->addHTML('</td></tr>');
 
         // Field for due date
         if ($this->getConf('datefield')) {
-            $form->addHTML('<tr><th>'.$this->getLang('date').':</th><td>', $pos++);
-            $input = $form->addTextInput('date', null, $pos++);
+            $form->addHTML('<tr><th>'.$this->getLang('date').':</th><td>');
+            $input = $form->addTextInput('date', null);
             $input->attr('value', date('Y-m-d'));
-            $form->addHTML('</td></tr>', $pos++);
+            $form->addHTML('</td></tr>');
         }
 
         // Select priority from drop down list
@@ -658,18 +655,18 @@ class helper_plugin_task extends DokuWiki_Plugin {
         $options ['!'] = $this->getLang('medium');
         $options ['!!'] = $this->getLang('high');
         $options ['!!!'] = $this->getLang('critical');
-        $input = $form->addDropdown('priority', $options, null, $pos++);
+        $input = $form->addDropdown('priority', $options, null);
         $input->attr('size', '1');
         $input->val($this->getLang('low'));
-        $form->addHTML('</td></tr>', $pos++);
+        $form->addHTML('</td></tr>');
 
-        $form->addHTML('</table>', $pos++);
+        $form->addHTML('</table>');
 
         // Add button
-        $form->addButton(null, $lang['btn_create'], $pos++);
+        $form->addButton(null, $lang['btn_create']);
 
         // Close fieldset
-        $form->addFieldsetClose($pos++);
+        $form->addFieldsetClose();
 
         // Generate the HTML-Representation of the form
         $ret = '<div class="newtask_form">';
@@ -684,6 +681,7 @@ class helper_plugin_task extends DokuWiki_Plugin {
      * This is the old version, creating all HTML code on its own.
      *
      * @see newTaskForm
+     * @deprecated 2017-03-30
      */
     protected function newTaskFormOld($ns, $selectUser=false, $selectUserGroup=null) {
         global $ID, $lang, $INFO, $auth;

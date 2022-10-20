@@ -40,11 +40,10 @@ class action_plugin_task extends DokuWiki_Action_Plugin {
      * Creates a new task page
      */
     protected function newTask() {
-        global $ID;
-        global $INFO;
+        global $ID, $INFO, $INPUT;
 
-        $ns    = cleanID($_REQUEST['ns']);
-        $title = str_replace(':', '', $_REQUEST['title']);
+        $ns    = cleanID($INPUT->post->str('ns'));
+        $title = str_replace(':', '', $INPUT->post->str('title'));
         $back  = $ID;
         $ID    = ($ns ? $ns.':' : '').cleanID($title);
         $INFO  = pageinfo();
@@ -63,12 +62,12 @@ class action_plugin_task extends DokuWiki_Action_Plugin {
             if (!@file_exists($INFO['filepath'])) {
                 global $TEXT;
 
-                $user     = $_REQUEST['user'];
-                $date     = $_REQUEST['date'];
-                $priority = $_REQUEST['priority'];
+                $user     = $INPUT->post->str('user');
+                $date     = $INPUT->post->str('date');
+                $priority = $INPUT->post->str('priority');
 
                 // create wiki page
-                $data = array(
+                $data = [
                         'id'       => $ID,
                         'ns'       => $ns,
                         'title'    => $title,
@@ -76,7 +75,7 @@ class action_plugin_task extends DokuWiki_Action_Plugin {
                         'priority' => $priority,
                         'user'     => $user,
                         'date'     => $date,
-                        );
+                ];
 
                 $TEXT = $this->_pageTemplate($data);
                 return 'preview';
@@ -90,6 +89,17 @@ class action_plugin_task extends DokuWiki_Action_Plugin {
 
     /**
      * Adapted version of pageTemplate() function
+     *
+     * @param array $data with:
+     *  'id' => string page id,
+     *  'ns' => string namespace,
+     *  'user' => string user id,
+     *  'date' => string date Y-m-d,
+     *  'back' => string page id of page to go back to,
+     *  'title' => string page title,
+     *  'priority' => string zero to three exclamation marks(!)
+     *
+     * @return string raw wiki text
      */
     function _pageTemplate($data) {
         global $INFO;
@@ -128,20 +138,18 @@ class action_plugin_task extends DokuWiki_Action_Plugin {
         }
 
         // do the replace
-        $tpl = str_replace(array_keys($replace), array_values($replace), $tpl);
-        return $tpl;
+        return str_replace(array_keys($replace), array_values($replace), $tpl);
     }
 
     /**
      * Changes the status of a task
      */
     protected function changeTask() {
-        global $ID;
-        global $INFO;
+        global $ID, $INFO, $INPUT;
 
-        $status = $_REQUEST['status'];
+        $status = $INPUT->post->int('status'); //TODO check if other default then 0?
         $status = trim($status);
-        if (!is_numeric($status) || $status < -1 || $status > 4) {
+        if (!is_numeric($status) || $status < -1 || $status > 4) { //FIXME is_numeric not needed
             if ($this->getConf('show_error_msg')) {
                 $message = $this->getLang('msg_rcvd_invalid_status');
                 $message = str_replace('%status%', $status, $message);
@@ -195,7 +203,7 @@ class action_plugin_task extends DokuWiki_Action_Plugin {
         // assign task to a user
         if (!$task['user']['name']) {
             // FIXME error message?
-            if (!$_SERVER['REMOTE_USER']) {
+            if (!$INPUT->server->has('REMOTE_USER')) {
                 // no logged in user
                 if ($this->getConf('show_info_msg')) {
                     msg($this->getLang('msg_not_logged_in'));
@@ -212,7 +220,7 @@ class action_plugin_task extends DokuWiki_Action_Plugin {
             }
 
             $task['user'] = [
-                    'id'   => $_SERVER['REMOTE_USER'],
+                    'id'   => $INPUT->server->str('REMOTE_USER'),
                     'name' => $INFO['userinfo']['name'],
                     'mail' => $INFO['userinfo']['mail'],
             ];
@@ -222,7 +230,7 @@ class action_plugin_task extends DokuWiki_Action_Plugin {
         $oldstatus = $task['status'];
         $task['status'] = $status;
         $helper->writeTask($ID, $task);
-        $_REQUEST['purge'] = true;
+        $INPUT->set('purge', true);
 
         if ($this->getConf('show_success_msg')) {
             $message = $this->getLang('msg_status_changed');
