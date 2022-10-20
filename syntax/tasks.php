@@ -150,13 +150,31 @@ class syntax_plugin_task_tasks extends DokuWiki_Syntax_Plugin {
             }
 
             // prepare pagelist columns
-            $pagelist->header['page'] = $this->getLang('task');
-            $pagelist->header['date'] = str_replace(' ', '&nbsp;', $this->getLang('date'));
-            $pagelist->header['user'] = str_replace(' ', '&nbsp;', $this->getLang('user'));
-            $pagelist->column['date'] = $this->getConf('datefield');
-            $pagelist->column['user'] = true;
-            $pagelist->setFlags($flags);
-            $pagelist->addColumn('task', 'status');
+            /* @deprecated 2022-10-17 */
+            if(method_exists($pagelist, 'setHeader')) {
+                //since 2022-10-17 some new methods are introduced
+                $pagelist->setHeader([
+                    'page' => $this->getLang('task'),
+                    'date' => str_replace(' ', '&nbsp;', $this->getLang('date')),
+                    'user' => str_replace(' ', '&nbsp;', $this->getLang('user'))
+                ]);
+                $pagelist->modifyColumn('date', $this->getConf('datefield'));
+                $pagelist->modifyColumn('user', true);
+                $pagelist->addColumn('task', 'status');
+                $pagelist->setFlags(['header']); //allow override via user provided flags
+                $pagelist->setFlags($flags);
+            } else {
+                //before 2022-10-17
+                $pagelist->header['page'] = $this->getLang('task');
+                $pagelist->header['date'] = str_replace(' ', '&nbsp;', $this->getLang('date'));
+                $pagelist->header['user'] = str_replace(' ', '&nbsp;', $this->getLang('user'));
+                $pagelist->column['date'] = $this->getConf('datefield');
+                $pagelist->column['user'] = true;
+                $pagelist->setFlags(['header']); //allow override via user provided flags
+                $pagelist->setFlags($flags);
+                $pagelist->addColumn('task', 'status');
+            }
+
 
             // output list
             $pagelist->startList();
