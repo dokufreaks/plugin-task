@@ -7,21 +7,20 @@ if (!defined('CRLF')) define('CRLF', "\r\n");
 if(!defined('DOKU_INC')) define('DOKU_INC', realpath(dirname(__FILE__)).'/../../../');
 
 require_once(DOKU_INC.'inc/init.php');
-require_once(DOKU_INC.'inc/common.php');
-require_once(DOKU_INC.'inc/infoutils.php');
-require_once(DOKU_INC.'inc/pageutils.php');
-require_once(DOKU_INC.'inc/parserutils.php');
 
-$id = $_REQUEST['id'];
+global $INPUT;
+$id = cleanID($INPUT->str('id'));
 
 $data = unserialize(io_readFile(metaFN($id, '.task'), false));
-if (!$data['vtodo']) msg('No VTODO data for this task.', -1);
+if (!$data['vtodo']) {
+    msg('No VTODO data for this task.', -1);
+}
 
 $title = p_get_metadata($id, 'title');
 if($title) {
     $filename = $title . '.ics';
 } else {
-    $filename = str_replace(':', '/', cleanID($id)) . '.ics';
+    $filename = str_replace(':', '/', $id) . '.ics';
 }
 
 $output = 'BEGIN:VCALENDAR'.CRLF.
@@ -36,5 +35,3 @@ header('Connection: close');
 header("Content-Type: text/Calendar; name='$filename'");
 
 echo $output;
-
-// vim:ts=4:sw=4:et:enc=utf-8:

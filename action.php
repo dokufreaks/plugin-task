@@ -9,19 +9,18 @@ class action_plugin_task extends DokuWiki_Action_Plugin {
     /**
      * register the eventhandlers
      */
-    function register(Doku_Event_Handler $contr) {
-        $contr->register_hook('ACTION_ACT_PREPROCESS',
-                            'BEFORE',
-                            $this,
-                            'handle_act_preprocess',
-                            array());
+    public function register(Doku_Event_Handler $controller) {
+        $controller->register_hook('ACTION_ACT_PREPROCESS', 'BEFORE', $this, 'handleTaskActions', []);
     }
 
     /**
      * Checks if 'newentry' was given as action, if so we
      * do handle the event our self and no further checking takes place
+     *
+     * @param Doku_Event $event
+     * @param $param
      */
-    function handle_act_preprocess(&$event, $param) {
+    public function handleTaskActions($event, $param) {
         if ($event->data != 'newtask' && $event->data != 'changetask') return;
 
         // we can handle it -> prevent others
@@ -29,10 +28,10 @@ class action_plugin_task extends DokuWiki_Action_Plugin {
 
         switch($event->data) {
             case 'newtask':
-                $event->data = $this->_newTask();
+                $event->data = $this->newTask();
                 break;
             case 'changetask':
-                $event->data = $this->_changeTask();
+                $event->data = $this->changeTask();
                 break;
         }
     }
@@ -40,12 +39,11 @@ class action_plugin_task extends DokuWiki_Action_Plugin {
     /**
      * Creates a new task page
      */
-    function _newTask() {
-        global $ID;
-        global $INFO;
+    protected function newTask() {
+        global $ID, $INFO, $INPUT;
 
-        $ns    = cleanID($_REQUEST['ns']);
-        $title = str_replace(':', '', $_REQUEST['title']);
+        $ns    = cleanID($INPUT->post->str('ns'));
+        $title = str_replace(':', '', $INPUT->post->str('title'));
         $back  = $ID;
         $ID    = ($ns ? $ns.':' : '').cleanID($title);
         $INFO  = pageinfo();
@@ -53,7 +51,7 @@ class action_plugin_task extends DokuWiki_Action_Plugin {
         // check if we are allowed to create this file
         if ($INFO['perm'] >= AUTH_CREATE) {
 
-            //check if locked by anyone - if not lock for my self      
+            //check if locked by anyone - if not lock for my self
             if ($INFO['locked']) {
                 return 'locked';
             } else {
@@ -64,12 +62,12 @@ class action_plugin_task extends DokuWiki_Action_Plugin {
             if (!@file_exists($INFO['filepath'])) {
                 global $TEXT;
 
-                $user     = $_REQUEST['user'];
-                $date     = $_REQUEST['date'];
-                $priority = $_REQUEST['priority'];
+                $user     = $INPUT->post->str('user');
+                $date     = $INPUT->post->str('date');
+                $priority = $INPUT->post->str('priority');
 
                 // create wiki page
-                $data = array(
+                $data = [
                         'id'       => $ID,
                         'ns'       => $ns,
                         'title'    => $title,
@@ -77,7 +75,7 @@ class action_plugin_task extends DokuWiki_Action_Plugin {
                         'priority' => $priority,
                         'user'     => $user,
                         'date'     => $date,
-                        );
+                ];
 
                 $TEXT = $this->_pageTemplate($data);
                 return 'preview';
@@ -88,9 +86,20 @@ class action_plugin_task extends DokuWiki_Action_Plugin {
             return 'show';
         }
     }
-  
+
     /**
      * Adapted version of pageTemplate() function
+     *
+     * @param array $data with:
+     *  'id' => string page id,
+     *  'ns' => string namespace,
+     *  'user' => string user id,
+     *  'date' => string date Y-m-d,
+     *  'back' => string page id of page to go back to,
+     *  'title' => string page title,
+     *  'priority' => string zero to three exclamation marks(!)
+     *
+     * @return string raw wiki text
      */
     function _pageTemplate($data) {
         global $INFO;
@@ -99,7 +108,7 @@ class action_plugin_task extends DokuWiki_Action_Plugin {
         $tpl  = io_readFile(DOKU_PLUGIN.'task/_template.txt');
 
         // standard replacements
-        $replace = array(
+        $replace = [
                 '@ID@'   => $id,
                 '@NS@'   => $data['ns'],
                 '@PAGE@' => strtr(noNS($id),'_',' '),
@@ -107,7 +116,7 @@ class action_plugin_task extends DokuWiki_Action_Plugin {
                 '@NAME@' => $INFO['userinfo']['name'],
                 '@MAIL@' => $INFO['userinfo']['mail'],
                 '@DATE@' => $data['date'],
-                );
+        ];
 
         // additional replacements
         $replace['@BACK@']     = $data['back'];
@@ -115,34 +124,32 @@ class action_plugin_task extends DokuWiki_Action_Plugin {
         $replace['@PRIORITY@'] = $data['priority'];
 
         // tag if tag plugin is available
-        if ((@file_exists(DOKU_PLUGIN.'tag/syntax/tag.php')) && (!plugin_isdisabled('tag'))) {
+        if (!plugin_isdisabled('tag')) {
             $replace['@TAG@'] = "\n\n{{tag>}}";
         } else {
             $replace['@TAG@'] = '';
         }
 
         // discussion if discussion plugin is available
-        if ((@file_exists(DOKU_PLUGIN.'discussion/syntax/comments.php')) && (!plugin_isdisabled('discussion'))) {
+        if (!plugin_isdisabled('discussion')) {
             $replace['@DISCUSSION@'] = "~~DISCUSSION~~";
         } else {
             $replace['@DISCUSSION@'] = '';
         }
 
         // do the replace
-        $tpl = str_replace(array_keys($replace), array_values($replace), $tpl);
-        return $tpl;
+        return str_replace(array_keys($replace), array_values($replace), $tpl);
     }
-  
+
     /**
      * Changes the status of a task
      */
-    function _changeTask() {
-        global $ID;
-        global $INFO;
+    protected function changeTask() {
+        global $ID, $INFO, $INPUT;
 
-        $status = $_REQUEST['status'];
+        $status = $INPUT->post->int('status'); //TODO check if other default then 0?
         $status = trim($status);
-        if (!is_numeric($status) || ($status < -1) || ($status > 4)) {
+        if (!is_numeric($status) || $status < -1 || $status > 4) { //FIXME is_numeric not needed
             if ($this->getConf('show_error_msg')) {
                 $message = $this->getLang('msg_rcvd_invalid_status');
                 $message = str_replace('%status%', $status, $message);
@@ -152,8 +159,9 @@ class action_plugin_task extends DokuWiki_Action_Plugin {
         }
 
         // load task data
-        if ($my =& plugin_load('helper', 'task')) {
-            $task = $my->readTask($ID);
+        /** @var helper_plugin_task $helper */
+        if ($helper = $this->loadHelper('task', false)) {
+            $task = $helper->readTask($ID);
         } else {
             if ($this->getConf('show_error_msg')) {
                 msg($this->getLang('msg_load_helper_failed'), -1);
@@ -169,14 +177,14 @@ class action_plugin_task extends DokuWiki_Action_Plugin {
             return 'show';
         }
 
-        $responsible = $my->_isResponsible($task['user']['name']);
+        $responsible = $helper->isResponsible($task['user']['name']);
 
         // some additional checks if change not performed by an admin
         // FIXME error messages?
         if ($INFO['perm'] != AUTH_ADMIN) {
 
             // responsible person can't verify her / his own tasks
-            if ($responsible && ($status == 4)) {
+            if ($responsible && $status == 4) {
                 if ($this->getConf('show_info_msg')) {
                     msg ($this->getLang('msg_responsible_no_verify'));
                 }
@@ -195,7 +203,7 @@ class action_plugin_task extends DokuWiki_Action_Plugin {
         // assign task to a user
         if (!$task['user']['name']) {
             // FIXME error message?
-            if (!$_SERVER['REMOTE_USER']) {
+            if (!$INPUT->server->has('REMOTE_USER')) {
                 // no logged in user
                 if ($this->getConf('show_info_msg')) {
                     msg($this->getLang('msg_not_logged_in'));
@@ -211,27 +219,26 @@ class action_plugin_task extends DokuWiki_Action_Plugin {
                 saveWikiText($ID, $new, $summary, true); // save as minor edit
             }
 
-            $task['user'] = array(
-                    'id'   => $_SERVER['REMOTE_USER'],
+            $task['user'] = [
+                    'id'   => $INPUT->server->str('REMOTE_USER'),
                     'name' => $INFO['userinfo']['name'],
                     'mail' => $INFO['userinfo']['mail'],
-                    );
+            ];
         }
 
         // save .task meta file and clear xhtml cache
         $oldstatus = $task['status'];
         $task['status'] = $status;
-        $my->writeTask($ID, $task);
-        $_REQUEST['purge'] = true;
+        $helper->writeTask($ID, $task);
+        $INPUT->set('purge', true);
 
         if ($this->getConf('show_success_msg')) {
             $message = $this->getLang('msg_status_changed');
-            $message = str_replace('%status%', $my->statusLabel($status), $message);
-            $message = str_replace('%oldstatus%', $my->statusLabel($oldstatus), $message);
+            $message = str_replace('%status%', $helper->statusLabel($status), $message);
+            $message = str_replace('%oldstatus%', $helper->statusLabel($oldstatus), $message);
             msg($message, 1);
         }
 
         return 'show';
     }
 }
-// vim:ts=4:sw=4:et:enc=utf-8:
